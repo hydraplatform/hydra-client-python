@@ -16,7 +16,6 @@
 # -*- coding: utf-8 -*-
 
 __all__ = ['JsonConnection', 'SoapConnection']
-
 import requests
 import json
 
@@ -159,13 +158,16 @@ class JsonConnection(object):
         self.session_id = session_id
 
     def call(self, func, args):
+        start_time = time.time()
         log.info("Calling: %s" % (func))
         call = {func: args}
-        headers = {'Content-Type': 'application/json',
-                   'session_id': self.session_id,
+        headers = {
+                   'Content-Type': 'application/json',
                    'app_name': self.app_name,
                    }
-        r = requests.post(self.url, data=json.dumps(call), headers=headers)
+
+        cookie = {'beaker.session.id':self.session_id}
+        r = requests.post(self.url, data=json.dumps(call), headers=headers, cookies=cookie)
         if not r.ok:
             try:
                 resp = json.loads(r.content)
@@ -177,9 +179,13 @@ class JsonConnection(object):
                     err = "An unknown server has occurred."
             raise RequestError(err)
 
+        if self.session_id is None:
+            self.session_id = r.cookies['beaker.session.id']
+            log.info(self.session_id)
+
         ret_obj = json.loads(r.content, object_hook=object_hook)
 
-        log.info('done')
+        log.info('done (%s)'%(time.time() -start_time,))
 
         return ret_obj
 
