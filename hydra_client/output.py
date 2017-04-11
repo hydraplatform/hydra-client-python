@@ -25,8 +25,8 @@ log = logging.getLogger(__name__)
 from lxml import etree
 from lxml.etree import XMLSyntaxError, ParseError
 
-from HydraLib import config
-from HydraLib.HydraException import HydraPluginError
+from hydra_base import config
+from hydra_base.exceptions import HydraPluginError
 
 import sys
 

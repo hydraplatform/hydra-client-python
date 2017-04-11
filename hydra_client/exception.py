@@ -17,7 +17,7 @@
 
 __all__ = ['RequestError']
 
-from HydraLib.HydraException import HydraPluginError
+from hydra_base.exceptions import HydraPluginError
 
 
 class RequestError(HydraPluginError):

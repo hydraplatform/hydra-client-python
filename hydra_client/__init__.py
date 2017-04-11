@@ -15,11 +15,11 @@
 #
 # -*- coding: utf-8 -*-
 
-from resources import *
-from connection import *
-from exception import *
-from output import *
-from templates import *
-from plugin import *
+from .resources import *
+from .connection import *
+from .exception import *
+from .output import *
+from .templates import *
+from .plugin import *
 
-from HydraLib.HydraException import HydraPluginError
+from hydra_base.exceptions import HydraPluginError

@@ -25,9 +25,9 @@ log = logging.getLogger(__name__)
 from suds.client import Client
 from suds.plugin import MessagePlugin
 
-from HydraLib import config
+from hydra_base import config
 
-from exception import RequestError
+from .exception import RequestError
 
 import time
 

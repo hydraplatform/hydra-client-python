@@ -23,9 +23,9 @@ log = logging.getLogger(__name__)
 
 from lxml import etree
 
-from HydraLib import config
-from HydraLib import util
-from HydraLib.HydraException import HydraPluginError
+from hydra_base import config
+from hydra_base import util
+from hydra_base.exceptions import HydraPluginError
 
 
 def set_resource_types(client, xml_template, network,
@@ -212,7 +212,7 @@ def validate_template(template_file, connection):
 
             restction_xml = attr.find("restrictions")
             attr_dict['restrictions'] = \
-                util.get_restriction_as_dict(restction_xml)
+                util.dataset_util.get_restriction_as_dict(restction_xml)
             resource_dict['attributes'][attr_name] = attr_dict
 
         if template_dict['resources'].get(resource_type):

@@ -24,12 +24,12 @@ log = logging.getLogger(__name__)
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
-from HydraLib.units import Units
-from HydraLib.hydra_dateutil import get_time_period, get_datetime
-from HydraLib.HydraException import HydraPluginError
+from hydra_base.units import Units
+from hydra_base.util.hydra_dateutil import get_time_period, get_datetime
+from hydra_base.exceptions import HydraPluginError
 
-from connection import JsonConnection
-from connection import SoapConnection
+from .connection import JsonConnection
+from .connection import SoapConnection
 
 
 class JSONPlugin(object):
