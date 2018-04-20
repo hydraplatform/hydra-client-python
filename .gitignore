@@ -1,1 +1,72 @@
- *.pyc
+#vim meta files
+*.swp
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pye
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+downloads/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+HydraPlugins/WaterML/ImportWML/dist/
+HydraPlugins/CSVplugin/ExportCSV/dist/
+HydraPlugins/CSVplugin/ImportCSV/dist/
+hydra.wsgi
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+Service References/
+Debug/
+
+HydraPlugins/JSONPlugin/ExportJSON/dist/
+HydraPlugins/JSONPlugin/ImportJSON/dist/
+
+.idea/
+
+.DS_Store
+
+*.gdx
+*.lst
+*.opt
+
+.pytest_cache
