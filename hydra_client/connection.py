@@ -15,7 +15,8 @@
 #
 # -*- coding: utf-8 -*-
 
-__all__ = ['JsonConnection', 'SoapConnection']
+#JSONConnection and JsonCOnnection are synonyums, and used for backward compatibility
+__all__ = ['JSONConnection', 'JsonConnection', 'SoapConnection', 'SOAPConnection']
 import requests
 import json
 
@@ -25,7 +26,9 @@ log = logging.getLogger(__name__)
 from suds.client import Client
 from suds.plugin import MessagePlugin
 
+import hydra_base as hb
 from hydra_base import config
+from hydra_base.lib.objects import JSONObject
 
 from .exception import RequestError
 
@@ -133,31 +136,55 @@ def _get_protocol(url):
     else:
         return 'http'
 
-
-class JsonConnection(object):
+#Do this for backward compatibility
+class JSONConnection(object):
 
     def __init__(self, url=None, sessionid=None, app_name=None):
-        if url is None:
-            port = config.getint('hydra_client', 'port', 80)
-            domain = config.get('hydra_client', 'domain', '127.0.0.1')
-            path = config.get('hydra_client', 'json_path', 'json')
-            #The domain may or may not specify the protocol, so do a check.
-            if domain.find('http') == -1:
-                self.url = "http://%s:%s/%s" % (domain, port, path)
+
+        #A local collection
+        if url is not None:
+            self.local = False
+            if url is None:
+                port = config.getint('hydra_client', 'port', 80)
+                domain = config.get('hydra_client', 'domain', '127.0.0.1')
+                path = config.get('hydra_client', 'json_path', 'json')
+                #The domain may or may not specify the protocol, so do a check.
+                if domain.find('http') == -1:
+                    self.url = "http://%s:%s/%s" % (domain, port, path)
+                else:
+                    self.url = "%s:%s/%s" % (domain, port, path)
             else:
-                self.url = "%s:%s/%s" % (domain, port, path)
+                log.info("Using user-defined URL: %s", url)
+                port = _get_port(url)
+                hostname = _get_hostname(url)
+                path = _get_path(url)
+                protocol = _get_protocol(url)
+                self.url = "%s://%s:%s%s/json" % (protocol, hostname, port, path)
+
+            log.info("Setting URL %s", self.url)
+
+            self.session_id = sessionid
         else:
-            log.info("Using user-defined URL: %s", url)
-            port = _get_port(url)
-            hostname = _get_hostname(url)
-            path = _get_path(url)
-            protocol = _get_protocol(url)
-            self.url = "%s://%s:%s%s/json" % (protocol, hostname, port, path)
-        log.info("Setting URL %s", self.url)
+            self.local = True
+
         self.app_name = app_name
 
-        self.session_id = sessionid
 
+    def __getattr__(self, name):
+        """
+            Here we redirect the function call to the local library function or
+            into the 'call' function, which uses a http request
+        """
+
+        #TODO: We need to somehow add an additional argument: user_id=self.user_id to the function call
+        if self.local is True:
+            return getattr(hb, name)
+        else:
+            #TODO: How do we pass the arguments into the call function? Perhaps set them as instance attributes, which are
+            ##accessed in a _call function?
+            return self.call(name)
+
+    #TODO: Add a _call function here which is called from 'call' for compatibility with the dot notation?
     def call(self, func, args):
         start_time = time.time()
         log.info("Calling: %s" % (func))
@@ -203,17 +230,37 @@ class JsonConnection(object):
         return ret_obj
 
     def login(self, username=None, password=None):
-        if username is None:
-            username = config.get('hydra_client', 'user')
-        if password is None:
-            password = config.get('hydra_client', 'password')
-        login_params = {'username': username, 'password': password}
+        if self.local is False:
+            if username is None:
+                username = config.get('hydra_client', 'user')
+            if password is None:
+                password = config.get('hydra_client', 'password')
+            login_params = {'username': username, 'password': password}
 
-        resp = self.call('login', login_params)
-        #set variables for use in request headers
-        log.info(resp)
+            resp = self.call('login', login_params)
+            #set variables for use in request headers
+            log.info(resp)
+        else:
+            hb.db.connect()
 
-class SoapConnection(object):
+            hb.hdb.create_default_users_and_perms()
+            hb.hdb.create_default_net()
+            hb.hdb.make_root_user()
+
+            #TODO: Is defaulting here dangerous?
+            if username is None:
+                log.info('No username spefified. Defaulting to "root"')
+                username='root'
+            if password is None:
+                log.info('No password spefified. Defaulting to ""')
+                password=""
+
+            self.user_id = hb.hdb.login_user(username, password)
+
+class JsonConnection(object):
+    pass
+
+class SOAPConnection(object):
 
     def __init__(self, url=None, sessionid=None, app_name=None):
         if url is None:
@@ -268,13 +315,8 @@ class SoapConnection(object):
 
         return session_id
 
+class SoapConnection(SOAPConnection):
+    pass
 
 def object_hook(x):
     return JSONObject(x)
-
-
-class JSONObject(dict):
-    def __init__(self, obj_dict):
-        for k, v in obj_dict.items():
-            self[k] = v
-            setattr(self, k, v)
