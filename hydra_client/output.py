@@ -82,7 +82,7 @@ def write_progress(x, y):
         a UI or other can pick it up and use it.
     """
     msg = "!!Progress %s/%s" % (x, y)
-    print msg
+    print(msg)
     sys.stdout.flush()
 
 
@@ -92,7 +92,7 @@ def write_output(text):
         the UI or other can pick it up and use it
     """
     msg = "!!Output %s" % (text,)
-    print msg
+    print(msg)
     sys.stdout.flush()
 
 
@@ -112,11 +112,11 @@ def validate_plugin_xml(plugin_xml_file_path):
         xmlschema_doc = etree.parse(plugin_xsd_path)
         xmlschema = etree.XMLSchema(xmlschema_doc)
         xml_tree = etree.fromstring(plugin_xml)
-    except XMLSyntaxError, e:
+    except XMLSyntaxError as e:
         raise HydraPluginError("There is an error in your XML syntax: %s" % e)
-    except ParseError, e:
+    except ParseError as e:
         raise HydraPluginError("There is an error in your XML: %s" % e)
-    except Exception, e:
+    except Exception as e:
         log.exception(e)
         raise HydraPluginError("An unknown error occurred with the plugin xsd: %s"%e.message)
 

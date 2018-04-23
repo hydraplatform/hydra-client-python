@@ -136,59 +136,62 @@ def _get_protocol(url):
     else:
         return 'http'
 
-#Do this for backward compatibility
-class JSONConnection(object):
 
-    def __init__(self, url=None, sessionid=None, app_name=None):
-
-        #A local collection
-        if url is not None:
-            self.local = False
-            if url is None:
-                port = config.getint('hydra_client', 'port', 80)
-                domain = config.get('hydra_client', 'domain', '127.0.0.1')
-                path = config.get('hydra_client', 'json_path', 'json')
-                #The domain may or may not specify the protocol, so do a check.
-                if domain.find('http') == -1:
-                    self.url = "http://%s:%s/%s" % (domain, port, path)
-                else:
-                    self.url = "%s:%s/%s" % (domain, port, path)
-            else:
-                log.info("Using user-defined URL: %s", url)
-                port = _get_port(url)
-                hostname = _get_hostname(url)
-                path = _get_path(url)
-                protocol = _get_protocol(url)
-                self.url = "%s://%s:%s%s/json" % (protocol, hostname, port, path)
-
-            log.info("Setting URL %s", self.url)
-
-            self.session_id = sessionid
-        else:
-            self.local = True
-
+# Do this for backward compatibility
+class BaseConnection(object):
+    """ Common base class for all connection subclasses. """
+    def __init__(self, app_name=None):
+        super(BaseConnection, self).__init__()
         self.app_name = app_name
 
+    def call(self, func_name, *args, **kwargs):
+        """ Call a hydra-base function by name. """
+        raise NotImplementedError()
+
+    def login(self):
+        raise NotImplementedError()
 
     def __getattr__(self, name):
         """
             Here we redirect the function call to the local library function or
             into the 'call' function, which uses a http request
         """
+        def wrapped(*args, **kwargs):
+            return self.call(name, *args, **kwargs)
+        return wrapped
 
-        #TODO: We need to somehow add an additional argument: user_id=self.user_id to the function call
-        if self.local is True:
-            return getattr(hb, name)
+
+class RemoteConnection(BaseConnection):
+    """ Remote connection to a Hydra server. """
+    def __init__(self, url, session_id=None, app_name=None):
+        super(RemoteConnection, self).__init__(app_name=app_name)
+
+        if url is None:
+            port = config.getint('hydra_client', 'port', 80)
+            domain = config.get('hydra_client', 'domain', '127.0.0.1')
+            path = config.get('hydra_client', 'json_path', 'json')
+            # The domain may or may not specify the protocol, so do a check.
+            if domain.find('http') == -1:
+                self.url = "http://%s:%s/%s" % (domain, port, path)
+            else:
+                self.url = "%s:%s/%s" % (domain, port, path)
         else:
-            #TODO: How do we pass the arguments into the call function? Perhaps set them as instance attributes, which are
-            ##accessed in a _call function?
-            return self.call(name)
+            log.info("Using user-defined URL: %s", url)
+            port = _get_port(url)
+            hostname = _get_hostname(url)
+            path = _get_path(url)
+            protocol = _get_protocol(url)
+            self.url = "%s://%s:%s%s/json" % (protocol, hostname, port, path)
+
+        self.session_id = session_id
 
     #TODO: Add a _call function here which is called from 'call' for compatibility with the dot notation?
-    def call(self, func, args):
+    def call(self, func, *args, **kwargs):
+        """  """
         start_time = time.time()
         log.info("Calling: %s" % (func))
-        call = {func: args}
+        # TODO add kwargs?
+        call = {func: list(args)}
         headers = {
                    'Content-Type': 'application/json',
                    'appname': self.app_name,
@@ -230,35 +233,51 @@ class JSONConnection(object):
         return ret_obj
 
     def login(self, username=None, password=None):
-        if self.local is False:
-            if username is None:
-                username = config.get('hydra_client', 'user')
-            if password is None:
-                password = config.get('hydra_client', 'password')
-            login_params = {'username': username, 'password': password}
 
-            resp = self.call('login', login_params)
-            #set variables for use in request headers
-            log.info(resp)
-        else:
-            hb.db.connect()
+        if username is None:
+            username = config.get('hydra_client', 'user')
+        if password is None:
+            password = config.get('hydra_client', 'password')
+        login_params = {'username': username, 'password': password}
 
-            hb.hdb.create_default_users_and_perms()
-            hb.hdb.create_default_net()
-            hb.hdb.make_root_user()
+        resp = self.call('login', login_params)
+        #set variables for use in request headers
+        log.info(resp)
 
-            #TODO: Is defaulting here dangerous?
-            if username is None:
-                log.info('No username spefified. Defaulting to "root"')
-                username='root'
-            if password is None:
-                log.info('No password spefified. Defaulting to ""')
-                password=""
 
-            self.user_id = hb.hdb.login_user(username, password)
+class JSONConnection(BaseConnection):
+    """ Local connection to a Hydra database using hydra_base directly."""
+    def __init__(self, *args, **kwargs):
+        super(JSONConnection, self).__init__(*args, **kwargs)
+        self.user_id = None
 
-class JsonConnection(object):
-    pass
+    def call(self, func_name, *args, **kwargs):
+        func = getattr(hb, func_name)
+
+        # Add user_id to the kwargs if not given and logged in.
+        if 'user_id' not in kwargs and self.user_id is not None:
+            kwargs['user_id'] = self.user_id
+        # Call the HB function
+        return func(*args, **kwargs)
+
+    def login(self, username=None, password=None):
+
+        #TODO: Is defaulting here dangerous?
+        if username is None:
+            log.info('No username spefified. Defaulting to "root"')
+            username='root'
+        if password is None:
+            log.info('No password spefified. Defaulting to ""')
+            password=""
+
+        self.user_id = hb.hdb.login_user(username, password)
+
+class JsonConnection(JSONConnection):
+    def __init__(self, *args, **kwargs):
+        raise PendingDeprecationWarning('This class will will be deprecated in favour of `JSONConnection`'
+                                        ' in a future release. Please update your code to use `JSONConnection`'
+                                        ' instead.')
+
 
 class SOAPConnection(object):
 
