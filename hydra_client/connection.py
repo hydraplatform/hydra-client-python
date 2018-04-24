@@ -34,6 +34,8 @@ from .exception import RequestError
 
 import time
 
+import warnings
+
 class FixNamespace(MessagePlugin):
     """Hopefully a temporary fix for an unresolved namespace issue.
     """
@@ -161,10 +163,12 @@ class BaseConnection(object):
         return wrapped
 
 
-class RemoteConnection(BaseConnection):
+class RemoteJSONConnection(BaseConnection):
     """ Remote connection to a Hydra server. """
     def __init__(self, url, session_id=None, app_name=None):
-        super(RemoteConnection, self).__init__(app_name=app_name)
+        super(RemoteJSONConnection, self).__init__(app_name=app_name)
+
+        self.user_id  = None
 
         if url is None:
             port = config.getint('hydra_client', 'port', 80)
@@ -185,18 +189,28 @@ class RemoteConnection(BaseConnection):
 
         self.session_id = session_id
 
-    #TODO: Add a _call function here which is called from 'call' for compatibility with the dot notation?
     def call(self, func, *args, **kwargs):
-        """  """
+        """
+            Call an arbitrary hydra server function, identified by the 'name' parameter
+
+            example:
+                self.call('get_network', {'network_id':2})
+
+        """
         start_time = time.time()
         log.info("Calling: %s" % (func))
+
+        if len(args) == 0:
+            fn_args = {}
+        else:
+            fn_args = args[0]
         # TODO add kwargs?
-        call = {func: list(args)}
+        call = {func: fn_args}
         headers = {
                    'Content-Type': 'application/json',
                    'appname': self.app_name,
                    }
-
+        log.info("Args %s", call)
         cookie = {'beaker.session.id':self.session_id, 'appname:': self.app_name}
         r = requests.post(self.url, data=json.dumps(call), headers=headers, cookies=cookie)
 
@@ -223,6 +237,7 @@ class RemoteConnection(BaseConnection):
             raise RequestError(err)
 
         if self.session_id is None:
+
             self.session_id = r.cookies['beaker.session.id']
             log.info(self.session_id)
 
@@ -241,8 +256,9 @@ class RemoteConnection(BaseConnection):
         login_params = {'username': username, 'password': password}
 
         resp = self.call('login', login_params)
+        self.user_id = int(resp.user_id)
         #set variables for use in request headers
-        log.info(resp)
+        log.info("Login response OK for user: %s", self.user_id)
 
 
 class JSONConnection(BaseConnection):
@@ -272,16 +288,20 @@ class JSONConnection(BaseConnection):
 
         self.user_id = hb.hdb.login_user(username, password)
 
-class JsonConnection(JSONConnection):
+class JsonConnection(RemoteJSONConnection):
     def __init__(self, *args, **kwargs):
-        raise PendingDeprecationWarning('This class will will be deprecated in favour of `JSONConnection`'
-                                        ' in a future release. Please update your code to use `JSONConnection`'
-                                        ' instead.')
+        super(JsonConnection, self).__init__()
+        warnings.warn(
+            'This class will will be deprecated in favour of `RemoteJSONConnection`'
+            ' in a future release. Please update your code to use `RemoteJSONConnection`'
+            ' instead.',
+             PendingDeprecationWarning
+        )
 
 
 class SOAPConnection(object):
 
-    def __init__(self, url=None, sessionid=None, app_name=None):
+    def __init__(self, url=None, session_id=None, app_name=None):
         if url is None:
             port = config.getint('hydra_client', 'port', 80)
             domain = config.get('hydra_client', 'domain', '127.0.0.1')
@@ -301,13 +321,13 @@ class SOAPConnection(object):
         log.info("Setting URL %s", self.url)
 
         self.app_name = app_name
-        self.sessionid = sessionid
+        self.session_id = session_id
         self.retxml = False
         self.client = Client(self.url,
                              timeout=3600,
                              plugins=[FixNamespace()],
                              retxml=self.retxml)
-        self.client.add_prefix('hyd', 'soap_server.hydra_complexmodels')
+        self.client.add_prefix('hyd', 'server.complexmodels')
 
         cache = self.client.options.cache
         cache.setduration(days=10)
@@ -319,23 +339,29 @@ class SOAPConnection(object):
 
         # Connect
         token = self.client.factory.create('RequestHeader')
-        if self.sessionid is None:
+        if self.session_id is None:
             if username is None:
                 user = config.get('hydra_client', 'user')
             if password is None:
                 passwd = config.get('hydra_client', 'password')
             login_response = self.client.service.login(user, passwd)
             token.user_id = login_response.user_id
-            sessionid = login_response.sessionid
-            token.username = user
-
-        token.sessionid = sessionid
+            self.user_id = login_response.user_id
+        #This needs to be 'sessionid' instead if 'session_id' because of apache
+        #not handling '_' well in request headers
         self.client.set_options(soapheaders=token)
 
-        return session_id
+        return token.user_id
 
 class SoapConnection(SOAPConnection):
-    pass
+    def __init__(self, *args, **kwargs):
+        super(SoapConnection, self).__init__()
+        warnings.warn(
+            'This class will will be deprecated in favour of `SOAPConnection`'
+            ' in a future release. Please update your code to use `SOAPConnection`'
+            ' instead.',
+             PendingDeprecationWarning
+        )
 
 def object_hook(x):
     return JSONObject(x)

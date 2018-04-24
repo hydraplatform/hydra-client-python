@@ -11,7 +11,7 @@ def test_local_connection(session):
     assert connection.user_id is not None
 
     # Get my own projects
+    #The UID argument ere is the user whose projects are being requested
     projects = connection.get_projects(connection.user_id)
     # There should be no projects in this new DB.
     assert len(projects) == 0
-
