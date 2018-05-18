@@ -27,8 +27,7 @@ from suds.client import Client
 from suds.plugin import MessagePlugin
 
 import hydra_base as hb
-from hydra_base import config
-from hydra_base.lib.objects import JSONObject
+from . import config
 
 from .exception import RequestError
 
@@ -171,9 +170,9 @@ class RemoteJSONConnection(BaseConnection):
         self.user_id  = None
 
         if url is None:
-            port = config.getint('hydra_client', 'port', 80)
-            domain = config.get('hydra_client', 'domain', '127.0.0.1')
-            path = config.get('hydra_client', 'json_path', 'json')
+            port = config.port
+            domain = config.domain
+            path = config.path
             # The domain may or may not specify the protocol, so do a check.
             if domain.find('http') == -1:
                 self.url = "http://%s:%s/%s" % (domain, port, path)
@@ -250,9 +249,9 @@ class RemoteJSONConnection(BaseConnection):
     def login(self, username=None, password=None):
 
         if username is None:
-            username = config.get('hydra_client', 'user')
+            username = config.user
         if password is None:
-            password = config.get('hydra_client', 'password')
+            password = config.password
         login_params = {'username': username, 'password': password}
 
         resp = self.call('login', login_params)
@@ -303,9 +302,9 @@ class SOAPConnection(object):
 
     def __init__(self, url=None, session_id=None, app_name=None):
         if url is None:
-            port = config.getint('hydra_client', 'port', 80)
-            domain = config.get('hydra_client', 'domain', '127.0.0.1')
-            path = config.get('hydra_client', 'soap_path', 'soap')
+            port = config.port
+            domain = config.domain
+            path = config.path
             #The domain may or may not specify the protocol, so do a check.
             if domain.find('http') == -1:
                 self.url = "http://%s:%s/%s?wsdl" % (domain, port, path)
@@ -341,12 +340,13 @@ class SOAPConnection(object):
         token = self.client.factory.create('RequestHeader')
         if self.session_id is None:
             if username is None:
-                user = config.get('hydra_client', 'user')
+                user = config.user
             if password is None:
-                passwd = config.get('hydra_client', 'password')
+                passwd = config.password
             login_response = self.client.service.login(user, passwd)
             token.user_id = login_response.user_id
             self.user_id = login_response.user_id
+
         #This needs to be 'sessionid' instead if 'session_id' because of apache
         #not handling '_' well in request headers
         self.client.set_options(soapheaders=token)
@@ -364,4 +364,4 @@ class SoapConnection(SOAPConnection):
         )
 
 def object_hook(x):
-    return JSONObject(x)
+    return ExtendedDict(x)
