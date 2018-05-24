@@ -30,7 +30,6 @@ import hydra_base as hb
 from . import config
 
 from .exception import RequestError
-
 import time
 
 import warnings
@@ -141,9 +140,9 @@ def _get_protocol(url):
 # Do this for backward compatibility
 class BaseConnection(object):
     """ Common base class for all connection subclasses. """
-    def __init__(self, app_name=None):
+    def __init__(self, *args, **kwargs):
         super(BaseConnection, self).__init__()
-        self.app_name = app_name
+        self.app_name = kwargs.get('app_name', None)
 
     def call(self, func_name, *args, **kwargs):
         """ Call a hydra-base function by name. """
@@ -260,11 +259,29 @@ class RemoteJSONConnection(BaseConnection):
         log.info("Login response OK for user: %s", self.user_id)
 
 
+import collections
+import six
+def args_to_json_object(*args):
+    for arg in args:
+        if isinstance(arg, six.string_types):
+            yield arg
+        elif isinstance(arg, (int, float)):
+            yield arg
+        elif isinstance(arg, collections.Mapping):
+            yield JSONObject(arg)
+        elif isinstance(arg, collections.Iterable):
+            yield [JSONObject(v) for v in arg]
+        else:
+            yield JSONObject(arg)
+
+
 class JSONConnection(BaseConnection):
     """ Local connection to a Hydra database using hydra_base directly."""
     def __init__(self, *args, **kwargs):
         super(JSONConnection, self).__init__(*args, **kwargs)
         self.user_id = None
+        db_url = kwargs.get('db_url', None)
+        hb.db.connect(db_url)
 
     def call(self, func_name, *args, **kwargs):
         func = getattr(hb, func_name)
@@ -272,8 +289,14 @@ class JSONConnection(BaseConnection):
         # Add user_id to the kwargs if not given and logged in.
         if 'user_id' not in kwargs and self.user_id is not None:
             kwargs['user_id'] = self.user_id
+
+        # Convert the arguments to JSON objects
+        json_obj_args = list(args_to_json_object(*args))
+
         # Call the HB function
-        return func(*args, **kwargs)
+        ret = func(*json_obj_args, **kwargs)
+        for o in args_to_json_object(ret):
+            return o
 
     def login(self, username=None, password=None):
 
