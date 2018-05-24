@@ -282,6 +282,7 @@ class JSONConnection(BaseConnection):
         super(JSONConnection, self).__init__(*args, **kwargs)
         self.user_id = None
         db_url = kwargs.get('db_url', None)
+        self.autocommit = kwargs.get('autocommit', True)
         hb.db.connect(db_url)
 
     def call(self, func_name, *args, **kwargs):
@@ -297,6 +298,8 @@ class JSONConnection(BaseConnection):
         # Call the HB function
         ret = func(*json_obj_args, **kwargs)
         for o in args_to_json_object(ret):
+            if self.autocommit is True:
+                hb.db.commit_transaction()
             return o
 
     def login(self, username=None, password=None):
