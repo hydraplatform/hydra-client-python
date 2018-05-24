@@ -141,9 +141,9 @@ def _get_protocol(url):
 # Do this for backward compatibility
 class BaseConnection(object):
     """ Common base class for all connection subclasses. """
-    def __init__(self, app_name=None):
+    def __init__(self, *args, **kwargs):
         super(BaseConnection, self).__init__()
-        self.app_name = app_name
+        self.app_name = kwargs.get('app_name', None)
 
     def call(self, func_name, *args, **kwargs):
         """ Call a hydra-base function by name. """
@@ -281,6 +281,8 @@ class JSONConnection(BaseConnection):
     def __init__(self, *args, **kwargs):
         super(JSONConnection, self).__init__(*args, **kwargs)
         self.user_id = None
+        db_url = kwargs.get('db_url', None)
+        hb.db.connect(db_url)
 
     def call(self, func_name, *args, **kwargs):
         func = getattr(hb, func_name)
