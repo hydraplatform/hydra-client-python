@@ -1,6 +1,11 @@
 from hydra_client.connection import SOAPConnection
 from hydra_base_fixtures import *
 import logging
+import pytest
+
+# Mark this whole module as soap tests
+pytestmark = pytest.mark.soaptest
+
 
 def test_local_connection():
     """ Test a direct connection to hydra-base. """
