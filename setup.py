@@ -8,5 +8,5 @@ setup(
     author_email='stephen.knox@manchester.ac.uk',
     url='https://github.com/hydraplatform/hydra-client-python',
     packages=find_packages(),
-    install_requires=['lxml', 'hydra_base', 'requests'],
+    install_requires=['lxml', 'requests', 'suds-jurko'],
 )
