@@ -8,8 +8,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import datetime
 
-from hydra_pywr.template import generate_pywr_attributes, generate_pywr_template
-
 global user_id
 user_id = config.get('DEFAULT', 'root_user_id', 1)
 

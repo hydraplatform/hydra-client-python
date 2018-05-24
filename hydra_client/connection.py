@@ -31,7 +31,6 @@ from hydra_base import config
 from hydra_base.lib.objects import JSONObject
 
 from .exception import RequestError
-
 import time
 
 import warnings
@@ -261,6 +260,22 @@ class RemoteJSONConnection(BaseConnection):
         log.info("Login response OK for user: %s", self.user_id)
 
 
+import collections
+import six
+def args_to_json_object(*args):
+    for arg in args:
+        if isinstance(arg, six.string_types):
+            yield arg
+        elif isinstance(arg, (int, float)):
+            yield arg
+        elif isinstance(arg, collections.Mapping):
+            yield JSONObject(arg)
+        elif isinstance(arg, collections.Iterable):
+            yield [JSONObject(v) for v in arg]
+        else:
+            yield JSONObject(arg)
+
+
 class JSONConnection(BaseConnection):
     """ Local connection to a Hydra database using hydra_base directly."""
     def __init__(self, *args, **kwargs):
@@ -273,8 +288,14 @@ class JSONConnection(BaseConnection):
         # Add user_id to the kwargs if not given and logged in.
         if 'user_id' not in kwargs and self.user_id is not None:
             kwargs['user_id'] = self.user_id
+
+        # Convert the arguments to JSON objects
+        json_obj_args = list(args_to_json_object(*args))
+
         # Call the HB function
-        return func(*args, **kwargs)
+        ret = func(*json_obj_args, **kwargs)
+        for o in args_to_json_object(ret):
+            return o
 
     def login(self, username=None, password=None):
 
