@@ -31,7 +31,7 @@ from . import config
 
 from .exception import RequestError
 import time
-
+import os
 import warnings
 
 class FixNamespace(MessagePlugin):
@@ -281,6 +281,7 @@ class JSONConnection(BaseConnection):
         super(JSONConnection, self).__init__(*args, **kwargs)
         self.user_id = None
         db_url = kwargs.get('db_url', None)
+        self.autocommit = kwargs.get('autocommit', True)
         hb.db.connect(db_url)
 
     def call(self, func_name, *args, **kwargs):
@@ -296,17 +297,29 @@ class JSONConnection(BaseConnection):
         # Call the HB function
         ret = func(*json_obj_args, **kwargs)
         for o in args_to_json_object(ret):
+            if self.autocommit is True:
+                hb.db.commit_transaction()
             return o
 
     def login(self, username=None, password=None):
 
-        #TODO: Is defaulting here dangerous?
+        # TODO add support for token based authentication when merged upstream.
         if username is None:
-            log.info('No username spefified. Defaulting to "root"')
-            username='root'
+            # Try to get user name from environment
+            try:
+                username = os.environ['HYDRA_USERNAME']
+            except KeyError:
+                raise ValueError('No username found.')
+            else:
+                log.debug('Using username from environment.')
+
         if password is None:
-            log.info('No password spefified. Defaulting to ""')
-            password=""
+            try:
+                username = os.environ['HYDRA_PASSWORD']
+            except KeyError:
+                raise ValueError('No password found for user "{}"'.format(username))
+            else:
+                log.debug('Using password from environment.')
 
         self.user_id = hb.hdb.login_user(username, password)
 
