@@ -30,6 +30,8 @@ import hydra_base as hb
 from hydra_base import config
 from hydra_base.lib.objects import JSONObject
 
+import getpass
+
 from .exception import RequestError
 import time
 import os
@@ -306,21 +308,18 @@ class JSONConnection(BaseConnection):
 
         # TODO add support for token based authentication when merged upstream.
         if username is None:
-            # Try to get user name from environment
-            try:
-                username = os.environ['HYDRA_USERNAME']
-            except KeyError:
-                raise ValueError('No username found.')
-            else:
-                log.debug('Using username from environment.')
+            log.info("No username specified. Defaulting looking at 'HYDRA_USERNAME'")
+            username = os.environ.get('HYDRA_USERNAME')
+
+            if username is None:
+                log.info("HYDRA_USERNAME usernams is None, prompting user")
+                username = raw_input('Username:')
 
         if password is None:
-            try:
-                username = os.environ['HYDRA_PASSWORD']
-            except KeyError:
-                raise ValueError('No password found for user "{}"'.format(username))
-            else:
-                log.debug('Using password from environment.')
+            password = os.environ.get('HYDRA_PASSWORD')
+
+            if password is None:
+                password = getpass.getpass()
 
         self.user_id = hb.hdb.login_user(username, password)
 
