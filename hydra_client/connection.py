@@ -250,10 +250,23 @@ class RemoteJSONConnection(BaseConnection):
 
     def login(self, username=None, password=None):
 
+        # TODO add support for token based authentication when merged upstream.
         if username is None:
-            username = config.get('hydra_client', 'user')
+            log.info("No username specified. Defaulting looking at 'HYDRA_USERNAME'")
+            username = os.environ.get('HYDRA_USERNAME')
+
+            if username is None:
+                log.info("HYDRA_USERNAME usernams is None, prompting user")
+                username = raw_input('Username:')
+
         if password is None:
-            password = config.get('hydra_client', 'password')
+            log.info("No password specified. Defaulting looking at 'HYDRA_PASSWORD'")
+
+            password = os.environ.get('HYDRA_PASSWORD')
+
+            if password is None:
+                password = getpass.getpass()
+
         login_params = {'username': username, 'password': password}
 
         resp = self.call('login', login_params)
@@ -316,6 +329,8 @@ class JSONConnection(BaseConnection):
                 username = raw_input('Username:')
 
         if password is None:
+            log.info("No password specified. Defaulting looking at 'HYDRA_PASSWORD'")
+
             password = os.environ.get('HYDRA_PASSWORD')
 
             if password is None:
@@ -376,10 +391,22 @@ class SOAPConnection(object):
         token = self.client.factory.create('RequestHeader')
         if self.session_id is None:
             if username is None:
-                user = config.get('hydra_client', 'user')
+                log.info("No username specified. Defaulting looking at 'HYDRA_USERNAME'")
+                username = os.environ.get('HYDRA_USERNAME')
+
+                if username is None:
+                    log.info("HYDRA_USERNAME usernams is None, prompting user")
+                    username = raw_input('Username:')
+
             if password is None:
-                passwd = config.get('hydra_client', 'password')
-            login_response = self.client.service.login(user, passwd)
+                log.info("No password specified. Defaulting looking at 'HYDRA_PASSWORD'")
+
+                password = os.environ.get('HYDRA_PASSWORD')
+
+                if password is None:
+                    password = getpass.getpass()
+
+            login_response = self.client.service.login(username, password)
             token.user_id = login_response.user_id
             self.user_id = login_response.user_id
         #This needs to be 'sessionid' instead if 'session_id' because of apache
