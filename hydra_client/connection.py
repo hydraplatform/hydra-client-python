@@ -32,7 +32,7 @@ from hydra_base.lib.objects import JSONObject
 
 from .exception import RequestError
 import time
-
+import os
 import warnings
 
 class FixNamespace(MessagePlugin):
@@ -304,13 +304,23 @@ class JSONConnection(BaseConnection):
 
     def login(self, username=None, password=None):
 
-        #TODO: Is defaulting here dangerous?
+        # TODO add support for token based authentication when merged upstream.
         if username is None:
-            log.info('No username spefified. Defaulting to "root"')
-            username='root'
+            # Try to get user name from environment
+            try:
+                username = os.environ['HYDRA_USERNAME']
+            except KeyError:
+                raise ValueError('No username found.')
+            else:
+                log.debug('Using username from environment.')
+
         if password is None:
-            log.info('No password spefified. Defaulting to ""')
-            password=""
+            try:
+                username = os.environ['HYDRA_PASSWORD']
+            except KeyError:
+                raise ValueError('No password found for user "{}"'.format(username))
+            else:
+                log.debug('Using password from environment.')
 
         self.user_id = hb.hdb.login_user(username, password)
 
