@@ -27,8 +27,9 @@ from suds.client import Client
 from suds.plugin import MessagePlugin
 
 import hydra_base as hb
-
-from base_connection import BaseConnection
+import six
+import collections
+from .base_connection import BaseConnection
 
 import getpass
 

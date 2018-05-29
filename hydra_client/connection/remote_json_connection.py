@@ -33,7 +33,7 @@ import time
 import os
 import warnings
 
-from base_connection import BaseConnection
+from .base_connection import BaseConnection
 
 
 class RemoteJSONConnection(BaseConnection):
