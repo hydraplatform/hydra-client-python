@@ -28,7 +28,7 @@ from hydra_base.lib.units import Units
 from hydra_base.util.hydra_dateutil import get_time_period, get_datetime
 from hydra_base.exceptions import HydraPluginError
 
-from .connection import JsonConnection
+from .connection import RemoteJSONConnection
 from .connection import SoapConnection
 
 
@@ -42,7 +42,7 @@ class JSONPlugin(object):
         self.server_url = args.server_url
         self.app_name = self.__class__.__bases__[0].__name__
 
-        self.connection = JsonConnection(self.server_url, self.session_id,
+        self.connection = RemoteJSONConnection(self.server_url, self.session_id,
                                          self.app_name)
 
         if self.session_id is None:

@@ -29,7 +29,7 @@ class ExtendedDict(dict):
         A dictionary object whose attributes can be accesed via a '.'.
         Pass in a nested dictionary
     """
-    def __init__(self, obj_dict):
+    def __init__(self, obj_dict, parent=None):
 
         for k, v in obj_dict.items():
             if isinstance(v, ExtendedDict):
