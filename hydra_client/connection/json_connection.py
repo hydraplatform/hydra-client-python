@@ -17,25 +17,13 @@
 
 #JSONConnection are synonyums, and used for backward compatibility
 __all__ = ['JSONConnection']
-import requests
-import json
 
 import logging
 log = logging.getLogger(__name__)
 
-from suds.client import Client
-from suds.plugin import MessagePlugin
-
 import hydra_base as hb
 
 from base_connection import BaseConnection
-
-import getpass
-
-from ..exception import RequestError
-import time
-import os
-import warnings
 
 class JSONConnection(BaseConnection):
     """ Local connection to a Hydra database using hydra_base directly."""
