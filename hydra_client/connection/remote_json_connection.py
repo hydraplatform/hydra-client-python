@@ -23,14 +23,10 @@ import json
 import logging
 log = logging.getLogger(__name__)
 
-from suds.client import Client
-from suds.plugin import MessagePlugin
-
 from ..objects import ExtendedDict
 
-from ..exception import RequestError
+from hydra_client.exception import RequestError
 import time
-import os
 import warnings
 
 from .base_connection import BaseConnection
