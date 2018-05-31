@@ -22,8 +22,9 @@ import logging
 log = logging.getLogger(__name__)
 
 import hydra_base as hb
-
-from base_connection import BaseConnection
+import six
+import collections
+from .base_connection import BaseConnection
 
 class JSONConnection(BaseConnection):
     """ Local connection to a Hydra database using hydra_base directly."""

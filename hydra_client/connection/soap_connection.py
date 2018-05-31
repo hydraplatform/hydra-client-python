@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 from suds.client import Client
 from suds.plugin import MessagePlugin
 
-from base_connection import BaseConnection
+from .base_connection import BaseConnection
 
 import getpass
 
