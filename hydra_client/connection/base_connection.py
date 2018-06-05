@@ -154,7 +154,10 @@ class BaseConnection(object):
 
             if username is None:
                 log.info("HYDRA_USERNAME usernams is None, prompting user")
-                ret_username = raw_input('Username:')
+                try:
+                    ret_username = raw_input('Username:')
+                except:
+                    ret_username = input('Username:')
         else:
             ret_username = username
 
