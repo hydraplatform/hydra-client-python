@@ -32,12 +32,17 @@ class ExtendedDict(dict):
     def __init__(self, obj_dict, parent=None):
 
         for k, v in obj_dict.items():
-            if isinstance(v, ExtendedDict):
+            if isinstance(v, ExtendedDict) or isinstance(v, unicode):
                 setattr(self, k, v)
             elif isinstance(v, dict):
                 setattr(self, k, ExtendedDict(v, obj_dict))
             elif isinstance(v, list):
-                l = [ExtendedDict(item, obj_dict) for item in v]
+                l = []
+                for item in v:
+                    if isinstance(item, unicode):
+                        l.append(item)
+                    else:
+                        l.append(ExtendedDict(item, obj_dict))
                 setattr(self, k, l)
             else:
                 setattr(self, k, v)

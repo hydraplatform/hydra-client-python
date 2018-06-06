@@ -30,7 +30,16 @@ class JSONConnection(BaseConnection):
     """ Local connection to a Hydra database using hydra_base directly."""
     def __init__(self, *args, **kwargs):
         super(JSONConnection, self).__init__(*args, **kwargs)
-        self.user_id = None
+
+        #Hydra Base needs a user ID in its function calls. setting self.user_id
+        #allows this client to set this implicitly
+        self.user_id = kwargs.get('user_id', None)
+
+        #The user ID can be accessed from the session if it's not set explicitly.
+        self.session_id = kwargs.get('session_id', None)
+        if self.user_id is None and self.session_id is not None:
+            self.user_id = hb.get_session_user(self.session_id)
+
         db_url = kwargs.get('db_url', None)
         self.autocommit = kwargs.get('autocommit', True)
         hb.db.connect(db_url)
@@ -56,7 +65,7 @@ class JSONConnection(BaseConnection):
 
         parsed_username, parsed_password = self.get_username_and_password(username, password)
 
-        self.user_id = hb.hdb.login_user(parsed_username, parsed_password)
+        self.user_id, self.session_id = hb.login(parsed_username, parsed_password)
 
     def args_to_json_object(self, *args):
         for arg in args:
