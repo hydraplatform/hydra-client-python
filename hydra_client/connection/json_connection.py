@@ -67,6 +67,10 @@ class JSONConnection(BaseConnection):
 
         self.user_id, self.session_id = hb.login(parsed_username, parsed_password)
 
+    def logout(self):
+
+        hb.logout(self.session_id)
+
     def args_to_json_object(self, *args):
         for arg in args:
             if isinstance(arg, six.string_types):
