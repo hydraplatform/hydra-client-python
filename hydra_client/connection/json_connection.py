@@ -61,6 +61,15 @@ class JSONConnection(BaseConnection):
                 hb.db.commit_transaction()
             return o
 
+    def connect(self):
+        try:
+            hb.util.hdb.create_default_users_and_perms()
+            hb.util.hdb.make_root_user()
+            hb.util.hdb.create_default_net()
+            hb.commit_transaction()
+        except:
+            hb.rollback_transaction()
+
     def login(self, username=None, password=None):
 
         parsed_username, parsed_password = self.get_username_and_password(username, password)
