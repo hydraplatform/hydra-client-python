@@ -22,6 +22,8 @@ import json
 import logging
 log = logging.getLogger(__name__)
 
+import six
+
 from datetime import datetime
 
 class ExtendedDict(dict):
@@ -32,14 +34,14 @@ class ExtendedDict(dict):
     def __init__(self, obj_dict, parent=None):
 
         for k, v in obj_dict.items():
-            if isinstance(v, ExtendedDict) or isinstance(v, unicode):
+            if isinstance(v, ExtendedDict) or isinstance(v, six.string_types):
                 setattr(self, k, v)
             elif isinstance(v, dict):
                 setattr(self, k, ExtendedDict(v, obj_dict))
             elif isinstance(v, list):
                 l = []
                 for item in v:
-                    if isinstance(item, unicode):
+                    if isinstance(item, six.string_types):
                         l.append(item)
                     else:
                         l.append(ExtendedDict(item, obj_dict))
