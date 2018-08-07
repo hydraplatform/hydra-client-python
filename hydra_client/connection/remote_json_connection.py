@@ -66,7 +66,8 @@ class RemoteJSONConnection(BaseConnection):
                    'appname': self.app_name,
                    }
         log.info("Args %s", call)
-        cookie = {'beaker.session.id':self.session_id, 'appname:': self.app_name}
+        cookie = {'beaker.session.id':self.session_id, 'user_id': str(self.user_id), 'appname:': self.app_name if self.app_name else ''}
+
         r = requests.post(self.url, data=json.dumps(call), headers=headers, cookies=cookie)
 
         if not r.ok:
@@ -107,7 +108,7 @@ class RemoteJSONConnection(BaseConnection):
         new_username, new_password = self.get_username_and_password(username, password)
 
         login_params = {'username': new_username, 'password': new_password}
-
+        
         resp = self.call('login', login_params)
         self.user_id = int(resp.user_id)
         #set variables for use in request headers

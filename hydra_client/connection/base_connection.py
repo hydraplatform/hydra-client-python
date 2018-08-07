@@ -34,6 +34,19 @@ class BaseConnection(object):
         return wrapped
 
     def get_url(self, url, path):
+        
+        """
+            Identify the protocol (http) if there is one,  hostname (localhost), port (8080) if there is one
+            and the path (if there is one), then return a consistently formatted URL like
+            http://hostname:port/path
+
+
+        """
+        
+        #Remove trailing slashes
+        if len(url) > 0 and url[-1] == '/':
+            url = url[0:-1]
+
         if url is None:
             port = config.port
             domain = config.domain
@@ -69,7 +82,7 @@ class BaseConnection(object):
         if len(hostname) == 1:
             return ''
         else:
-            return "/%s" % ("/".join(hostname[1:]))
+            return "%s" % ("/".join(hostname[1:]))
 
 
     def get_hostname(self, url):
