@@ -165,8 +165,8 @@ class BaseConnection(object):
             log.info("No username specified. Defaulting looking at 'HYDRA_USERNAME'")
             ret_username = os.environ.get('HYDRA_USERNAME')
 
-            if username is None:
-                log.info("HYDRA_USERNAME usernams is None, prompting user")
+            if ret_username is None:
+                log.info("HYDRA_USERNAME username is None, prompting user")
                 ret_username = six.moves.input('Username:')
         else:
             ret_username = username
@@ -176,7 +176,7 @@ class BaseConnection(object):
 
             ret_password = os.environ.get('HYDRA_PASSWORD')
 
-            if password is None:
+            if ret_password is None:
                 ret_password = getpass.getpass()
         else:
             ret_password=password
