@@ -82,7 +82,9 @@ class JSONConnection(BaseConnection):
 
     def args_to_json_object(self, *args):
         for arg in args:
-            if isinstance(arg, six.string_types):
+            if arg is None:
+                yield None
+            elif isinstance(arg, six.string_types):
                 yield arg
             elif isinstance(arg, (int, float)):
                 yield arg
