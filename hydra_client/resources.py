@@ -125,21 +125,22 @@ class HydraNetwork(HydraResource):
         log.info("Loading group items")
         for groupitem in groupitems:
             if groupitem.ref_key == 'NODE':
-                if groupitem.ref_id not in nodegroups:
-                    nodegroups.update({groupitem.ref_id: [groupitem.group_id]})
+                if groupitem.node_id not in nodegroups:
+                    nodegroups.update({groupitem.node_id: [groupitem.group_id]})
                 else:
-                    nodegroups[groupitem.ref_id].append(groupitem.group_id)
+                    nodegroups[groupitem.node_id].append(groupitem.group_id)
             elif groupitem.ref_key == 'LINK':
-                if groupitem.ref_id not in linkgroups:
-                    linkgroups.update({groupitem.ref_id: [groupitem.group_id]})
+                if groupitem.link_id not in linkgroups:
+                    linkgroups.update({groupitem.link_id: [groupitem.group_id]})
                 else:
-                    linkgroups[groupitem.ref_id].append(groupitem.group_id)
+                    linkgroups[groupitem.link_id].append(groupitem.group_id)
             elif groupitem.ref_key == 'GROUP':
-                if groupitem.ref_id not in groupgroups:
-                    groupgroups.update({groupitem.ref_id:
+                if groupitem.subgroup_id not in groupgroups:
+                    groupgroups.update({groupitem.subgroup_id:
                                         [groupitem.group_id]})
                 else:
-                    groupgroups[groupitem.ref_id].append(groupitem.group_id)
+                    groupgroups[groupitem.subgroup_id].append(groupitem.group_id)
+
         log.info("Loading groups")
         # load groups
         if soap_net.resourcegroups is not None:
