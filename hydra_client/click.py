@@ -68,10 +68,13 @@ def make_plugin(command, category, shell, docker_image=None):
         'smallicon': None,
         'largeicon': None,
         'plugin_epilog': command.epilog,
-        'mandatory_args': [arg for arg in make_args(command)],
-        'non_mandatory_args': [arg for arg in make_args(command, required=False)],
+        'mandatory_args': [],
+        'non_mandatory_args': [],
         'switches': []
     }
+
+    for category, arg in make_args(command):
+        plugin[category].append(arg)
 
     if docker_image is None:
         plugin.update({
@@ -88,14 +91,18 @@ def make_plugin(command, category, shell, docker_image=None):
     return plugin
 
 
-def make_args(command, required=True):
+def make_args(command):
     """ Generate argument definitions for each parameter in command. """
     for param in command.params:
         if not isinstance(param, (click.Argument, click.Option)):
             continue
 
-        if param.required != required:
-            continue
+        if param.type == click.BOOL:
+            category = 'switches'
+        elif param.required:
+            category = 'mandatory_args'
+        else:
+            category = 'non_mandatory_args'
 
         arg = {
             'name': param.name,
@@ -109,7 +116,7 @@ def make_args(command, required=True):
         except KeyError:
             pass
 
-        yield arg
+        yield category, arg
 
 
 def plugin_to_xml(data):
@@ -119,7 +126,7 @@ def plugin_to_xml(data):
     for key, value in data.items():
         e = ET.SubElement(root, key, )
 
-        if key in ('mandatory_args', 'non_mandatory_args'):
+        if key in ('mandatory_args', 'non_mandatory_args', 'switches'):
             for arg in value:
                 arg_element = ET.SubElement(e, 'arg')
                 for arg_key, arg_value in arg.items():
