@@ -88,6 +88,8 @@ class JSONConnection(BaseConnection):
                 yield arg
             elif isinstance(arg, (int, float)):
                 yield arg
+            elif isinstance(arg, hb.JSONObject):
+                yield arg
             elif isinstance(arg, collections.Mapping):
                 yield hb.JSONObject(arg)
             elif isinstance(arg, collections.Iterable):
