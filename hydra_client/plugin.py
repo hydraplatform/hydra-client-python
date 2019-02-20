@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
-from hydra_base.lib.units import Units
+from hydra_base.lib import units
 from hydra_base.util.hydra_dateutil import get_time_period, get_datetime
 from hydra_base.exceptions import HydraPluginError
 
@@ -33,9 +33,6 @@ from .connection import SoapConnection
 
 
 class JSONPlugin(object):
-
-    def __init__(self):
-        self.units = Units()
 
     def connect(self, args):
         self.session_id = args.session_id
@@ -47,8 +44,6 @@ class JSONPlugin(object):
 
         if self.session_id is None:
             self.session_id = self.connection.login()
-
-        self.units = Units()
 
     def parse_time_step(self, time_step, target='s'):
         """
@@ -70,7 +65,7 @@ class JSONPlugin(object):
 
         log.info("Time period is %s", period)
 
-        converted_time_step = self.units.convert(value, period, target)
+        converted_time_step = units.convert(value, period, target)
 
         log.info("Time period is %s %s", converted_time_step, period)
 
