@@ -10,7 +10,7 @@ import os
 
 # Special argument names (keys) to be used as click options mapped
 # to types defined in Hydra/HWI (values)
-ARGTYPES = {
+HYDRA_ARGTYPES = {
     'network_id': 'network',
     'scenario_id': 'scenario',
     'project_id': 'project',
@@ -111,10 +111,8 @@ def make_args(command):
         }
 
         # Add argtype if matches a given type.
-        try:
-            arg['argtype'] = ARGTYPES[param.name]
-        except KeyError:
-            pass
+        if param.name in HYDRA_ARGTYPES:
+            arg['argtype'] = HYDRA_ARGTYPES[param.name]
 
         yield category, arg
 
