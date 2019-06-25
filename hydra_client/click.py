@@ -56,13 +56,13 @@ def make_plugin(command, category, shell, docker_image=None):
 
     if name is None:
         name = command.name
-
+    
     plugin = {
         'plugin_name': name,
         'plugin_dir': '',
         'plugin_description': command.help,
         'plugin_category': category,
-        'plugin_location': '.',
+        'plugin_location': '',
         'plugin_nativelogextension': '.log',
         'plugin_nativeoutputextension': '.out',
         'smallicon': None,
