@@ -19,7 +19,7 @@ Hydra Base
 ```
 import hydra_client as hc
 
-hb_conn = JSONConnection()
+hb_conn = hc.JSONConnection()
 
 hb_conn.login(username='root', password='')
 
