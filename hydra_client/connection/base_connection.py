@@ -59,7 +59,12 @@ class BaseConnection(object):
             log.info("Using user-defined URL: %s", url)
             port = self.get_port(url)
             hostname = self.get_hostname(url)
-            path = self.get_path(url)
+            url_path = self.get_path(url)
+            
+            #there is a path specified on the url directly. If not, use the user specified path, if it's there.
+            if url_path != '':
+                path = url_path
+
             protocol = self.get_protocol(url)
             ret_url = "%s://%s:%s/%s" % (protocol, hostname, port, path)
 
@@ -80,6 +85,8 @@ class BaseConnection(object):
 
         hostname = url.split('/')
         if len(hostname) == 1:
+            return ''
+        elif hostname[1] == '': #ends with '/'
             return ''
         else:
             return "%s" % ("/".join(hostname[1:]))
