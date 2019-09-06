@@ -39,10 +39,11 @@ class JSONConnection(BaseConnection):
         self.session_id = kwargs.get('session_id', None)
         if self.user_id is None and self.session_id is not None:
             self.user_id = hb.get_session_user(self.session_id)
-
-        db_url = kwargs.get('db_url', None)
-        self.autocommit = kwargs.get('autocommit', True)
-        hb.db.connect(db_url)
+        
+        if kwargs.get('session') is None:
+            db_url = kwargs.get('db_url', None)
+            self.autocommit = kwargs.get('autocommit', True)
+            hb.db.connect(db_url)
 
     def call(self, func_name, *args, **kwargs):
         func = getattr(hb, func_name)
