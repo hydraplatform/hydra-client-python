@@ -4,7 +4,7 @@ Hydra Platform client libraries for Python
 Installation
 ------------
 
-pip install hydra-client
+pip install hydra-client-python
 
 
 Usage:
