@@ -34,7 +34,7 @@ class JSONConnection(BaseConnection):
         #Hydra Base needs a user ID in its function calls. setting self.user_id
         #allows this client to set this implicitly
         self.user_id = kwargs.get('user_id', None)
-
+        
         #The user ID can be accessed from the session if it's not set explicitly.
         self.session_id = kwargs.get('session_id', None)
         if self.user_id is None and self.session_id is not None:
@@ -94,6 +94,9 @@ class JSONConnection(BaseConnection):
             elif isinstance(arg, collections.Mapping):
                 yield hb.JSONObject(arg)
             elif isinstance(arg, collections.Iterable):
-                yield [hb.JSONObject(v) for v in arg]
+                if len(arg) > 0 and isinstance(arg[0], (six.string_types, int, float)):
+                    yield arg
+                else:
+                    yield [hb.JSONObject(v) for v in arg]
             else:
                 yield hb.JSONObject(arg)
