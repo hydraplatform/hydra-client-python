@@ -132,4 +132,4 @@ class SOAPPlugin(object):
         if self.session_is is None:
             self.session_id = self.connection.login()
 
-        self.units = Units()
+        self.units = None
