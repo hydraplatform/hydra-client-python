@@ -41,7 +41,7 @@ class RemoteJSONConnection(BaseConnection):
 
 
         self.url = self.get_url(url, 'json')
-        self.app_name = app_name
+        self.app_name = app_name if app_name else ''
         self.session_id = session_id
 
     def call(self, func, *args, **kwargs):
@@ -56,9 +56,10 @@ class RemoteJSONConnection(BaseConnection):
         log.info("Calling: %s" % (func))
 
         if len(args) == 0:
-            fn_args = {}
+            fn_args = kwargs
         else:
             fn_args = args[0]
+
         # TODO add kwargs?
         call = {func: fn_args}
         headers = {
@@ -66,7 +67,10 @@ class RemoteJSONConnection(BaseConnection):
                    'appname': self.app_name,
                    }
         log.info("Args %s", call)
-        cookie = {'beaker.session.id':self.session_id, 'user_id': str(self.user_id), 'appname:': self.app_name if self.app_name else ''}
+        cookie = {'beaker.session.id':self.session_id,
+                  'user_id': str(self.user_id),
+                  'appname': self.app_name.replace(' ', '_')#for some reason, beaker fails when the appname cookie has a space in it
+                 }
 
         r = requests.post(self.url, data=json.dumps(call), headers=headers, cookies=cookie)
 
@@ -108,7 +112,7 @@ class RemoteJSONConnection(BaseConnection):
         new_username, new_password = self.get_username_and_password(username, password)
 
         login_params = {'username': new_username, 'password': new_password}
-        
+
         resp = self.call('login', login_params)
         self.user_id = int(resp.user_id)
         #set variables for use in request headers
