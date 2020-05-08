@@ -34,12 +34,12 @@ class JSONConnection(BaseConnection):
         #Hydra Base needs a user ID in its function calls. setting self.user_id
         #allows this client to set this implicitly
         self.user_id = kwargs.get('user_id', None)
-        
+
         #The user ID can be accessed from the session if it's not set explicitly.
         self.session_id = kwargs.get('session_id', None)
         if self.user_id is None and self.session_id is not None:
             self.user_id = hb.get_session_user(self.session_id)
-        
+
         if kwargs.get('session') is None:
             db_url = kwargs.get('db_url', None)
             self.autocommit = kwargs.get('autocommit', True)
@@ -80,6 +80,7 @@ class JSONConnection(BaseConnection):
     def logout(self):
 
         hb.logout(self.session_id)
+        self.user_id, self.session_id = None, None
 
     def args_to_json_object(self, *args):
         for arg in args:
