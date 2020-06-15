@@ -5,6 +5,8 @@ import six
 
 import os
 
+import hydra_base
+
 import getpass
 
 import logging
@@ -16,6 +18,7 @@ class BaseConnection(object):
     def __init__(self, *args, **kwargs):
         super(BaseConnection, self).__init__()
         self.app_name = kwargs.get('app_name', None)
+        self.dateformat = hydra_base.config.get('DEFAULT', 'datetime_format', "%Y-%m-%dT%H:%M:%S.%f000Z")
 
     def call(self, func_name, *args, **kwargs):
         """ Call a hydra-base function by name. """
@@ -34,7 +37,7 @@ class BaseConnection(object):
         return wrapped
 
     def get_url(self, url, path):
-        
+
         """
             Identify the protocol (http) if there is one,  hostname (localhost), port (8080) if there is one
             and the path (if there is one), then return a consistently formatted URL like
@@ -42,7 +45,7 @@ class BaseConnection(object):
 
 
         """
-        
+
         #Remove trailing slashes
         if len(url) > 0 and url[-1] == '/':
             url = url[0:-1]
@@ -60,7 +63,7 @@ class BaseConnection(object):
             port = self.get_port(url)
             hostname = self.get_hostname(url)
             url_path = self.get_path(url)
-            
+
             #there is a path specified on the url directly. If not, use the user specified path, if it's there.
             if url_path != '':
                 path = url_path
