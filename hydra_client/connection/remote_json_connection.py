@@ -50,6 +50,7 @@ class RemoteJSONConnection(BaseConnection):
         self.url = self.get_url(url, 'json')
         self.app_name = app_name if app_name else ''
         self.session_id = session_id
+        self.test_server = None
 
         if test_server is not None:
             self.test_server = test_server
@@ -106,6 +107,7 @@ class RemoteJSONConnection(BaseConnection):
                 self.call('get_network', {'network_id':2})
 
         """
+
         if self.test_server is not None:
             return self._test_call(func, *args, **kwargs)
 
