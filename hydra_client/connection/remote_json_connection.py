@@ -38,7 +38,7 @@ class RemoteJSONConnection(BaseConnection):
         """
             args:
                 url: The url of the hydra platform server
-                session_id: THe session ID if one exists for that user already
+                session_id: The session ID if one exists for that user already
                 app_name: The name of the app making the requests
                 test_server: A Spyne NullServer object, which if not null is used
                               for testing purposes
