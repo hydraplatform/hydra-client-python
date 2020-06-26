@@ -81,6 +81,7 @@ class JSONConnection(BaseConnection):
                 except Exception as e:
                     hb.db.DBSession.rollback()
                     hb.rollback_transaction()
+                    raise
             return o
 
     def connect(self):
@@ -117,7 +118,6 @@ class JSONConnection(BaseConnection):
             elif isinstance(arg, (int, float)):
                 yield arg
             elif isinstance(arg, datetime):
-                #yield arg
                 yield datetime.strftime(arg, self.dateformat)
             elif isinstance(arg, hb.JSONObject):
                 yield arg

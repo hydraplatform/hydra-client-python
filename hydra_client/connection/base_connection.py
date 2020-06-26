@@ -12,13 +12,15 @@ import getpass
 import logging
 log = logging.getLogger(__name__)
 
+DEFAULT_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f000Z"
+
 # Do this for backward compatibility
 class BaseConnection(object):
     """ Common base class for all connection subclasses. """
     def __init__(self, *args, **kwargs):
         super(BaseConnection, self).__init__()
         self.app_name = kwargs.get('app_name', None)
-        self.dateformat = hydra_base.config.get('DEFAULT', 'datetime_format', "%Y-%m-%dT%H:%M:%S.%f000Z")
+        self.dateformat = hydra_base.config.get('DEFAULT', 'datetime_format', DEFAULT_DATETIME_FORMAT)
 
     def call(self, func_name, *args, **kwargs):
         """ Call a hydra-base function by name. """

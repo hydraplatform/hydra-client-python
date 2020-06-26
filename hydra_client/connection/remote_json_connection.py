@@ -86,7 +86,7 @@ class RemoteJSONConnection(BaseConnection):
 
         json_ret = json.loads(raw_ret)
 
-        #Return value is a generator so we need to converit to a list and return
+        #Return value is a generator so we need to convert it to a list and return
         #the first element
         try:
             if isinstance(json_ret, list):
