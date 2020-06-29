@@ -21,10 +21,12 @@ __all__ = ['JSONConnection']
 import logging
 log = logging.getLogger(__name__)
 
+from datetime import datetime
 import hydra_base as hb
 import six
 import collections
 from .base_connection import BaseConnection
+import json
 
 class JSONConnection(BaseConnection):
     """ Local connection to a Hydra database using hydra_base directly."""
@@ -51,20 +53,41 @@ class JSONConnection(BaseConnection):
         # Add user_id to the kwargs if not given and logged in.
         if 'user_id' not in kwargs and self.user_id is not None:
             kwargs['user_id'] = self.user_id
+        else:
+            self.login()
 
         # Convert the arguments to JSON objects
         json_obj_args = list(self.args_to_json_object(*args))
 
+        try:
+            ret = func(*json_obj_args, **kwargs)
+        except Exception as e:
+            hb.db.DBSession.rollback()
+            hb.rollback_transaction()
+            raise
+
         # Call the HB function
-        ret = func(*json_obj_args, **kwargs)
-        for o in self.args_to_json_object(ret):
+
+        try:
+            json_resp = list(self.args_to_json_object(ret))
+        except ValueError as e:
+            log.warning(e)
+            json_resp = [ret]
+
+        for o in json_resp:
             if self.autocommit is True:
-                hb.db.commit_transaction()
+                try:
+                    hb.commit_transaction()
+                except Exception as e:
+                    hb.db.DBSession.rollback()
+                    hb.rollback_transaction()
+                    raise
             return o
 
     def connect(self):
         try:
             hb.util.hdb.create_default_users_and_perms()
+            hb.util.hdb.create_default_units_and_dimensions()
             hb.util.hdb.make_root_user()
             hb.util.hdb.create_default_net()
             hb.commit_transaction()
@@ -77,10 +100,14 @@ class JSONConnection(BaseConnection):
 
         self.user_id, self.session_id = hb.login(parsed_username, parsed_password)
 
+        return self.user_id, self.session_id
+
     def logout(self):
 
         hb.logout(self.session_id)
         self.user_id, self.session_id = None, None
+
+        return 'OK'
 
     def args_to_json_object(self, *args):
         for arg in args:
@@ -90,12 +117,23 @@ class JSONConnection(BaseConnection):
                 yield arg
             elif isinstance(arg, (int, float)):
                 yield arg
+            elif isinstance(arg, datetime):
+                yield datetime.strftime(arg, self.dateformat)
             elif isinstance(arg, hb.JSONObject):
                 yield arg
             elif isinstance(arg, collections.Mapping):
                 yield hb.JSONObject(arg)
             elif isinstance(arg, collections.Iterable):
-                if len(arg) > 0 and isinstance(arg[0], (six.string_types, int, float)):
+                arg = list(arg) ## in case it's a set or something that doesnt support indexing
+                if len(arg) > 0 and isinstance(arg[0], (six.string_types, int, float, datetime)):
+                    json_friendly_arg = []
+                    for a in arg:
+                        if isinstance(a, datetime):
+                            json_friendly_arg.append(datetime.strftime(a, self.dateformat))
+                        else:
+                            json_friendly_arg.append(a)
+                    yield json_friendly_arg
+                elif len(arg) > 0 and isinstance(arg[0], hb.JSONObject):
                     yield arg
                 else:
                     yield [hb.JSONObject(v) for v in arg]
