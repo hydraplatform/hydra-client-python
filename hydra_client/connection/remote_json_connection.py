@@ -23,7 +23,7 @@ import json
 import logging
 log = logging.getLogger(__name__)
 
-import hydra_base as hb
+from ..objects import ExtendedDict
 
 from hydra_client.exception import RequestError
 import time
@@ -101,18 +101,11 @@ class RemoteJSONConnection(BaseConnection):
             self.session_id = r.cookies['beaker.session.id']
             log.info(self.session_id)
 
-
-        ret_obj = json.loads(r.content)
-
-        ret_json_object = None
-        if isinstance(ret_obj, list):
-            ret_json_object = [hb.JSONObject(o) for o in ret_obj]
-        else:
-            ret_json_object = hb.JSONObject(ret_obj)
+        ret_obj = json.loads(r.content, object_hook=object_hook)
 
         log.info('done (%s)'%(time.time() -start_time,))
 
-        return ret_json_object
+        return ret_obj
 
     def login(self, username=None, password=None):
 
@@ -137,4 +130,4 @@ class JsonConnection(RemoteJSONConnection):
         )
 
 def object_hook(x):
-    return hb.JSONObject(x)
+    return ExtendedDict(x)
