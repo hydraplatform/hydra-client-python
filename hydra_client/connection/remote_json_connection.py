@@ -160,11 +160,24 @@ class RemoteJSONConnection(BaseConnection):
             self.session_id = r.cookies['beaker.session.id']
             log.info(self.session_id)
 
-        ret_obj = json.loads(r.content, object_hook=object_hook)
+        json_ret = json.loads(r.content)
+        json_obj_ret = None
+        #Return value is a generator so we need to convert it to a list and return
+        #the first element
+        try:
+            if isinstance(json_ret, list):
+                try:
+                    json_obj_ret = [JSONObject(r) for r in json_ret]
+                except:
+                    json_obj_ret = json_ret
+            else:
+                json_obj_ret = JSONObject(json_ret)
+        except ValueError:
+            json_obj_ret = json_ret
 
-        log.info('done (%s)'%(time.time() -start_time,))
+        log.info('done (%s)'%(time.time() -start_time))
 
-        return ret_obj
+        return json_obj_ret
 
     def login(self, username=None, password=None):
 
