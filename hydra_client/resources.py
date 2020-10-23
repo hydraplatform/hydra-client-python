@@ -31,7 +31,7 @@ class HydraResource(object):
         self.id = None
         self.attributes = []
         self.groups = []
-        self.template = dict()
+        self.types = []
 
     def add_attribute(self, attr, res_attr, res_scen):
         attribute = HydraAttribute(attr, res_attr, res_scen)
@@ -49,13 +49,23 @@ class HydraResource(object):
         elif attr_id is not None:
             return self._get_attr_by_id(attr_id)
 
+    def get_type_by_template(self, template_id):
+        for ttype in self.types:
+            if ttype.template_id == template_id:
+                return ttype
+        return None
+
+    def get_type(self, id):
+        for ttype in self.types:
+            if ttype.id == id:
+                return ttype
+        return None
+
     def set_type(self, types):
-        if types is not None:
-            for obj_type in types:
-                # Add resource type to template dictionary
-                if obj_type.template_id not in self.template.keys():
-                    self.template[obj_type.template_id] = None
-                self.template[obj_type.template_id] = obj_type.name
+        if isinstance(types, list):
+            self.types.extend(types)
+        else:
+            self.types.append(types)
 
     def group(self, group_id):
         self.groups.append(group_id)
@@ -202,14 +212,14 @@ class HydraNetwork(HydraResource):
     def delete_node(self, node):
         pass
 
-    def get_node(self, node_name=None, node_id=None, node_type=None,
+    def get_node(self, node_name=None, node_id=None, node_type_id=None,
                  group=None):
         if node_name is not None:
             return self._get_node_by_name(node_name)
         elif node_id is not None:
             return self._get_node_by_id(node_id)
-        elif node_type is not None:
-            return self._get_nodes_by_type(node_type)
+        elif node_type_id is not None:
+            return self._get_nodes_by_type(node_type_id)
         elif group is not None:
             return self._get_nodes_by_group(group)
 
@@ -219,14 +229,14 @@ class HydraNetwork(HydraResource):
     def delete_link(self, link):
         pass
 
-    def get_link(self, link_name=None, link_id=None, link_type=None,
+    def get_link(self, link_name=None, link_id=None, link_type_id=None,
                  group=None):
         if link_name is not None:
             return self._get_link_by_name(link_name)
         elif link_id is not None:
             return self._get_link_by_id(link_id)
-        elif link_type is not None:
-            return self._get_links_by_type(link_type)
+        elif link_type_id is not None:
+            return self._get_links_by_type(link_type_id)
         elif group is not None:
             return self._get_links_by_group(group)
 
@@ -241,8 +251,8 @@ class HydraNetwork(HydraResource):
             return self._get_group_by_name(kwargs.get('group_name'))
         elif kwargs.get('group_id') is not None:
             return self._get_group_by_id(kwargs.get('group_id'))
-        elif kwargs.get('group_type') is not None:
-            return self._get_groups_by_type(kwargs.get('group_type'))
+        elif kwargs.get('group_type_id') is not None:
+            return self._get_groups_by_type(kwargs.get('group_type_id'))
         elif kwargs.get('group') is not None:
             return self._get_groups_by_group(kwargs.get('group'))
 
@@ -272,11 +282,12 @@ class HydraNetwork(HydraResource):
             if node.ID == ID:
                 return node
 
-    def _get_nodes_by_type(self, node_type):
+    def _get_nodes_by_type(self, node_type_id):
         nodes = []
         for node in self.nodes:
-            if node_type in node.template.values():
-                nodes.append(node)
+            for type in node.types:
+                if node_type_id == type.id:
+                    nodes.append(node)
         return nodes
 
     def _get_nodes_by_group(self, node_group):
@@ -296,11 +307,12 @@ class HydraNetwork(HydraResource):
             if link.ID == ID:
                 return link
 
-    def _get_links_by_type(self, link_type):
+    def _get_links_by_type(self, link_type_id):
         links = []
         for link in self.links:
-            if link_type in link.template.values():
-                links.append(link)
+            for type in link.types:
+                if type.id == link_type_id:
+                    links.append(link)
         return links
 
     def _get_links_by_group(self, link_group):
@@ -320,11 +332,12 @@ class HydraNetwork(HydraResource):
             if group.ID == ID:
                 return group
 
-    def _get_groups_by_type(self, group_type):
+    def _get_groups_by_type(self, group_type_id):
         groups = []
         for group in self.groups:
-            if group_type in group.template.values():
-                groups.append(group)
+            for type in group.types:
+                if type.id == group_type_id:
+                    groups.append(group)
         return groups
 
     def _get_groups_by_group(self, group_group):
