@@ -368,9 +368,9 @@ class HydraAttribute(object):
         if res_attr.attr_is_var == 'Y':
             self.is_var = True
         if res_scen is not None:
-            self.dataset_id = res_scen.value.id
-            self.dataset_type = res_scen.value.type
-            self.value = res_scen.value.value
+            self.dataset_id = res_scen.dataset.id
+            self.dataset_type = res_scen.dataset.type
+            self.value = res_scen.dataset.value
 
 
 def temp_ids(n=-1):

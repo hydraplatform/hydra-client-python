@@ -114,6 +114,13 @@ class RemoteJSONConnection(BaseConnection):
         start_time = time.time()
         log.info("Calling: %s" % (func))
 
+        for k, v in kwargs.items():
+            if v is True:
+                kwargs[k] = 'Y'
+            elif v is False:
+                kwargs[k] = 'N'
+
+
         if len(args) == 0:
             fn_args = kwargs
         else:
