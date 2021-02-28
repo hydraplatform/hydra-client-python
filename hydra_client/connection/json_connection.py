@@ -37,15 +37,17 @@ class JSONConnection(BaseConnection):
         #allows this client to set this implicitly
         self.user_id = kwargs.get('user_id', None)
 
+        self.db_url = None
+
         #The user ID can be accessed from the session if it's not set explicitly.
         self.session_id = kwargs.get('session_id', None)
         if self.user_id is None and self.session_id is not None:
             self.user_id = hb.get_session_user(self.session_id)
 
         if kwargs.get('session') is None:
-            db_url = kwargs.get('db_url', None)
+            self.db_url = kwargs.get('db_url', None)
             self.autocommit = kwargs.get('autocommit', True)
-            hb.db.connect(db_url)
+            self.db_url = hb.db.connect(self.db_url)
 
     def call(self, func_name, *args, **kwargs):
         func = getattr(hb, func_name)
