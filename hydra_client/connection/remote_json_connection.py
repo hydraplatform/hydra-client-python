@@ -132,7 +132,8 @@ class RemoteJSONConnection(BaseConnection):
             'Content-Type': 'application/json',
             'appname': self.app_name,
         }
-        log.info("Args %s", call)
+        if func != 'login':
+            log.info("Args %s", call)
         cookie = {'beaker.session.id':self.session_id,
                   'user_id': str(self.user_id),
                   'appname': self.app_name.replace(' ', '_')#for some reason, beaker fails when the appname cookie has a space in it
