@@ -123,9 +123,9 @@ class JSONConnection(BaseConnection):
                 yield datetime.strftime(arg, self.dateformat)
             elif isinstance(arg, hb.JSONObject):
                 yield arg
-            elif isinstance(arg, collections.Mapping):
+            elif isinstance(arg, collections.abc.Mapping):
                 yield hb.JSONObject(arg)
-            elif isinstance(arg, collections.Iterable):
+            elif isinstance(arg, collections.abc.Iterable):
                 arg = list(arg) ## in case it's a set or something that doesnt support indexing
                 if len(arg) > 0 and isinstance(arg[0], (six.string_types, int, float, datetime)):
                     json_friendly_arg = []
