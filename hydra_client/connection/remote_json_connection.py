@@ -156,10 +156,8 @@ class RemoteJSONConnection(BaseConnection):
                     err = "An unknown server has occurred."
 
                 if self.url.find('soap') > 0:
-                    log.info('The URL %s contains "soap". Is the wrong URL being used?', self.url)
-                    err.append(' -- A shot in the dark: the URL contains the word "soap".'+
-                                ', but this is a JSON-based plugin.' +
-                                ' Perhaps the wrong URL is being specified?')
+                    log.info('This library no longer support SOAP')
+                    err.append('This library no longer support SOAP')
 
             raise RequestError(err)
 
