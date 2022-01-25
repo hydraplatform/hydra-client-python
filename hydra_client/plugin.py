@@ -15,7 +15,7 @@
 #
 # -*- coding: utf-8 -*-
 
-__all__ = ['JSONPlugin', 'SOAPPlugin']
+__all__ = ['JSONPlugin']
 
 import re
 import logging
@@ -29,7 +29,6 @@ from hydra_base.util.hydra_dateutil import get_time_period, get_datetime
 from hydra_base.exceptions import HydraPluginError
 
 from .connection import RemoteJSONConnection
-from .connection import SoapConnection
 
 
 class JSONPlugin(object):
@@ -117,19 +116,3 @@ class JSONPlugin(object):
                 time_axis.append(start_date)
             return time_axis
 
-
-class SOAPPlugin(object):
-    def connect(self, args):
-        self.session_id = args.session_id
-        self.server_url = args.server_url
-        self.app_name = self.__class__.__bases__[0].__name__
-
-        self.connection = SoapConnection(self.server_url, self.session_id,
-                                         self.app_name)
-        self.service = self.connection.client.service
-        self.factory = self.connection.client.factory
-
-        if self.session_is is None:
-            self.session_id = self.connection.login()
-
-        self.units = None
