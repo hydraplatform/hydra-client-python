@@ -146,8 +146,7 @@ class HydraNetwork(HydraResource):
                     linkgroups[groupitem.link_id].append(groupitem.group_id)
             elif groupitem.ref_key == 'GROUP':
                 if groupitem.subgroup_id not in groupgroups:
-                    groupgroups.update({groupitem.subgroup_id:
-                                        [groupitem.group_id]})
+                    groupgroups[groupitem.subgroup_id] = [groupitem.group_id]
                 else:
                     groupgroups[groupitem.subgroup_id].append(groupitem.group_id)
 
