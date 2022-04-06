@@ -2,7 +2,6 @@ from hydra_client.connection import RemoteJSONConnection
 from hydra_base_fixtures import *
 import pytest
 
-# Mark this whole module as soap tests
 pytestmark = pytest.mark.webtest
 
 
