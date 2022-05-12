@@ -34,7 +34,7 @@ log = logging.getLogger(__name__)
 
 class RemoteJSONConnection(BaseConnection):
     """ Remote connection to a Hydra server. """
-    def __init__(self, url=None, session_id=None, app_name=None, test_server=None):
+    def __init__(self, url=None, session_id=None, app_name=None, test_server=None, **kwargs):
         """
             args:
                 url: The url of the hydra platform server
@@ -46,7 +46,7 @@ class RemoteJSONConnection(BaseConnection):
         """
         super(RemoteJSONConnection, self).__init__(app_name=app_name)
 
-        self.user_id  = None
+        self.user_id = None
         self.url = self.get_url(url, 'json')
         self.app_name = app_name if app_name else ''
         self.session_id = session_id
@@ -134,6 +134,7 @@ class RemoteJSONConnection(BaseConnection):
         }
         if func != 'login':
             log.info("Args %s", call)
+
         cookie = {'beaker.session.id':self.session_id,
                   'user_id': str(self.user_id),
                   'appname': self.app_name.replace(' ', '_')#for some reason, beaker fails when the appname cookie has a space in it
@@ -163,7 +164,7 @@ class RemoteJSONConnection(BaseConnection):
 
         if self.session_id is None:
 
-            self.session_id = r.cookies['beaker.session.id']
+            self.session_id = r.cookies.get('beaker.session.id')
             log.info(self.session_id)
 
         json_ret = json.loads(r.content)
@@ -198,6 +199,15 @@ class RemoteJSONConnection(BaseConnection):
         log.info("Login response OK for user: %s", self.user_id)
 
         return self.user_id, self.session_id
+
+    def get_remote_session(self, session_id):
+        resp = self.call('get_remote_session', {'session_id': session_id})
+        if resp.get('user_id') is not None:
+            log.info("Session found for user: %s", self.user_id)
+        else:
+            log.warning("No session found with ID %s", session_id)
+            self.login()
+
 
 
 class JsonConnection(RemoteJSONConnection):
