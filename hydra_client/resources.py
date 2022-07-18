@@ -99,33 +99,33 @@ class HydraNetwork(HydraResource):
     node_groups = []
     link_groups = []
 
-    def load(self, soap_net, soap_attrs):
+    def load(self, json_net, json_attrs):
 
         # load network
         resource_scenarios = dict()
         for res_scen in \
-                soap_net.scenarios[0].resourcescenarios:
+                json_net.scenarios[0].resourcescenarios:
             resource_scenarios.update({res_scen.resource_attr_id: res_scen})
         attributes = dict()
-        for attr in soap_attrs:
+        for attr in json_attrs:
             attributes.update({attr.id: attr})
 
-        self.name = soap_net.name
-        self.ID = soap_net.id
-        self.description = soap_net.description
-        self.scenario_id = soap_net.scenarios[0].id
-        self.set_type(soap_net.types)
+        self.name = json_net.name
+        self.ID = json_net.id
+        self.description = json_net.description
+        self.scenario_id = json_net.scenarios[0].id
+        self.set_type(json_net.types)
 
-        if soap_net.attributes is not None:
-            for res_attr in soap_net.attributes:
+        if json_net.attributes is not None:
+            for res_attr in json_net.attributes:
                 self.add_attribute(attributes[res_attr.attr_id],
                                    res_attr,
                                    resource_scenarios.get(res_attr.id))
 
         # build dictionary of group members:
-        if soap_net.scenarios[0].resourcegroupitems is not None:
+        if json_net.scenarios[0].resourcegroupitems is not None:
             groupitems = \
-                soap_net.scenarios[0].resourcegroupitems
+                json_net.scenarios[0].resourcegroupitems
         else:
             groupitems = []
 
@@ -146,15 +146,14 @@ class HydraNetwork(HydraResource):
                     linkgroups[groupitem.link_id].append(groupitem.group_id)
             elif groupitem.ref_key == 'GROUP':
                 if groupitem.subgroup_id not in groupgroups:
-                    groupgroups.update({groupitem.subgroup_id:
-                                        [groupitem.group_id]})
+                    groupgroups[groupitem.subgroup_id] = [groupitem.group_id]
                 else:
                     groupgroups[groupitem.subgroup_id].append(groupitem.group_id)
 
         log.info("Loading groups")
         # load groups
-        if soap_net.resourcegroups is not None:
-            for resgroup in soap_net.resourcegroups:
+        if json_net.resourcegroups is not None:
+            for resgroup in json_net.resourcegroups:
                 new_group = HydraResource()
                 new_group.ID = resgroup.id
                 new_group.name = resgroup.name
@@ -169,7 +168,7 @@ class HydraNetwork(HydraResource):
                 del new_group
         log.info("Loading nodes")
         # load nodes
-        for node in soap_net.nodes:
+        for node in json_net.nodes:
             new_node = HydraResource()
             new_node.ID = node.id
             new_node.name = node.name
@@ -189,7 +188,7 @@ class HydraNetwork(HydraResource):
 
         # load links
         log.info("Loading links")
-        for link in soap_net.links:
+        for link in json_net.links:
             new_link = HydraResource()
             new_link.ID = link.id
             new_link.name = link.name
