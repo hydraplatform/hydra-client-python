@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='hydra-client-python',
+    name='hydra-client',
     version='0.1.3',
     description='Client side libraries for Hydra.',
     author='Stephen Knox',
