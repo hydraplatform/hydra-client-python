@@ -48,11 +48,10 @@ class BaseConnection(object):
 
         """
 
-        #Remove trailing slashes
-        if len(url) > 0 and url[-1] == '/':
-            url = url[0:-1]
+        url = os.getenv('HYDRA_SERVER_URL')
 
         if url is None:
+
             port = config.port
             domain = config.domain
             # The domain may or may not specify the protocol, so do a check.
@@ -62,6 +61,11 @@ class BaseConnection(object):
                 ret_url = "%s:%s/%s" % (domain, port, path)
         else:
             log.info("Using user-defined URL: %s", url)
+
+            #Remove trailing slashes
+            if len(url) > 0 and url[-1] == '/':
+                url = url[0:-1]
+
             port = self.get_port(url)
             hostname = self.get_hostname(url)
             url_path = self.get_path(url)
