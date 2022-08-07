@@ -196,6 +196,7 @@ class RemoteJSONConnection(BaseConnection):
         self.user_id = int(resp.user_id)
         #set variables for use in request headers
         log.info("Login response OK for user: %s", self.user_id)
+        log.info("Session ID: %s", self.session_id)
 
         return self.user_id, self.session_id
 
