@@ -61,8 +61,12 @@ class JSONConnection(BaseConnection):
         # Convert the arguments to JSON objects
         json_obj_args = list(self.args_to_json_object(*args))
 
+        k = list(kwargs.keys())
+        v = list(self.args_to_json_object(*list(kwargs.values())))
+        json_obj_kwargs = {k[i]:v[i] for i in range(len(v))}
+
         try:
-            ret = func(*json_obj_args, **kwargs)
+            ret = func(*json_obj_args, **json_obj_kwargs)
         except Exception as e:
             hb.db.DBSession.rollback()
             hb.rollback_transaction()
