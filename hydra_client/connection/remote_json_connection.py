@@ -29,8 +29,6 @@ from hydra_client.exception import RequestError
 
 from .base_connection import BaseConnection
 
-log = logging.getLogger(__name__)
-
 
 class RemoteJSONConnection(BaseConnection):
     """ Remote connection to a Hydra server. """
@@ -45,7 +43,7 @@ class RemoteJSONConnection(BaseConnection):
 
         """
         super(RemoteJSONConnection, self).__init__(app_name=app_name)
-
+        self.log = logging.getLogger(__name__)
         self.user_id = None
         self.url = self.get_url(url, 'json')
         self.app_name = app_name if app_name else ''
@@ -112,7 +110,7 @@ class RemoteJSONConnection(BaseConnection):
             return self._test_call(func, *args, **kwargs)
 
         start_time = time.time()
-        log.info("Calling: %s" % (func))
+        self.log.info("Calling: %s" % (func))
 
         for k, v in kwargs.items():
             if v is True:
@@ -133,7 +131,7 @@ class RemoteJSONConnection(BaseConnection):
             'appname': self.app_name,
         }
         if func != 'login':
-            log.info("Args %s", call)
+            self.log.debug("Args %s", call)
 
         cookie = {'beaker.session.id':self.session_id,
                   'user_id': str(self.user_id),
@@ -147,9 +145,9 @@ class RemoteJSONConnection(BaseConnection):
                 resp = json.loads(r.content)
                 err = "%s:%s" % (resp['faultcode'], resp['faultstring'])
             except:
-                log.debug("Headers: %s"%headers)
-                log.debug("Url: %s"%self.url)
-                log.debug("Content: %s"%json.dumps(call))
+                self.log.debug("Headers: %s"%headers)
+                self.log.debug("Url: %s"%self.url)
+                self.log.debug("Content: %s"%json.dumps(call))
 
                 if r.content != '':
                     err = r.content
@@ -157,7 +155,7 @@ class RemoteJSONConnection(BaseConnection):
                     err = "An unknown server has occurred."
 
                 if self.url.find('soap') > 0:
-                    log.info('This library no longer support SOAP')
+                    self.log.info('This library no longer support SOAP')
                     err.append('This library no longer support SOAP')
 
             raise RequestError(err)
@@ -165,7 +163,7 @@ class RemoteJSONConnection(BaseConnection):
         if self.session_id is None:
 
             self.session_id = r.cookies.get('beaker.session.id')
-            log.info(self.session_id)
+            self.log.info(self.session_id)
 
         json_ret = json.loads(r.content)
         json_obj_ret = None
@@ -182,7 +180,7 @@ class RemoteJSONConnection(BaseConnection):
         except ValueError:
             json_obj_ret = json_ret
 
-        log.info('done (%s)'%(time.time() -start_time))
+        self.log.info('done (%s)'%(time.time() -start_time))
 
         return json_obj_ret
 
@@ -196,17 +194,17 @@ class RemoteJSONConnection(BaseConnection):
 
         self.user_id = int(resp.user_id)
         #set variables for use in request headers
-        log.info("Login response OK for user: %s", self.user_id)
-        log.info("Session ID: %s", self.session_id)
+        self.log.info("Login response OK for user: %s", self.user_id)
+        self.log.info("Session ID: %s", self.session_id)
 
         return self.user_id, self.session_id
 
     def get_remote_session(self, session_id):
         resp = self.call('get_remote_session', {'session_id': session_id})
         if resp.get('user_id') is not None:
-            log.info("Session found for user: %s", self.user_id)
+            self.log.info("Session found for user: %s", self.user_id)
         else:
-            log.warning("No session found with ID %s", session_id)
+            self.log.warning("No session found with ID %s", session_id)
             self.login()
 
 
