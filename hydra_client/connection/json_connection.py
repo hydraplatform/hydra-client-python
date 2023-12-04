@@ -72,6 +72,7 @@ class JSONConnection(BaseConnection):
             hb.rollback_transaction()
             raise
 
+
         # Call the HB function
 
         try:
@@ -88,6 +89,9 @@ class JSONConnection(BaseConnection):
                     hb.db.DBSession.rollback()
                     hb.rollback_transaction()
                     raise
+                finally:
+                    hb.db.close_session()
+                    hb.db.engine.dispose()
             return o
 
     def connect(self):
