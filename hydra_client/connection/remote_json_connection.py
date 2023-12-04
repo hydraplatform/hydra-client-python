@@ -92,11 +92,15 @@ class RemoteJSONConnection(BaseConnection):
             if isinstance(json_ret, list):
                 try:
                     return [JSONObject(r) for r in json_ret]
-                except:
+                except Exception as e:
+                    log.critical(f"Error parsing {json_ret}")
+                    log.exception(e)
                     return json_ret
             else:
                 return JSONObject(json_ret)
-        except ValueError:
+        except ValueError as e:
+            log.critical(f"Error parsing {json_ret}")
+            log.exception(e)
             return json_ret
 
     def call(self, func, *args, **kwargs):
@@ -133,7 +137,7 @@ class RemoteJSONConnection(BaseConnection):
             'appname': self.app_name,
         }
         if func != 'login':
-            log.info("Args %s", call)
+            log.info("Args %s", str(call)[0:200])
 
         cookie = {'beaker.session.id':self.session_id,
                   'user_id': str(self.user_id),
@@ -181,7 +185,6 @@ class RemoteJSONConnection(BaseConnection):
                 json_obj_ret = JSONObject(json_ret)
         except ValueError:
             json_obj_ret = json_ret
-
         log.info('done (%s)'%(time.time() -start_time))
 
         return json_obj_ret
