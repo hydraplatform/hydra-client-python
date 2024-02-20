@@ -107,6 +107,10 @@ class JSONConnection(BaseConnection):
         except:
             hb.rollback_transaction()
 
+    def close_session(self):
+        hb.db.close_session()
+        hb.db.engine.dispose()
+
     def login(self, username=None, password=None):
 
         parsed_username, parsed_password = self.get_username_and_password(username, password)

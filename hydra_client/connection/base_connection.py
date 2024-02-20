@@ -248,3 +248,6 @@ class BaseConnection(object):
         password = encrypter.decrypt(encoded_text.encode('utf-8'))
 
         return password.decode('utf-8')
+
+    def close_session(self):
+        pass

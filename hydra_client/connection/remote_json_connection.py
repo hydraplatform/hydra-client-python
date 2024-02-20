@@ -91,13 +91,13 @@ class RemoteJSONConnection(BaseConnection):
                 try:
                     return [JSONObject(r) for r in json_ret]
                 except Exception as e:
-                    log.critical(f"Error parsing {json_ret}")
+                    self.log.critical(f"Error parsing {json_ret}")
                     log.exception(e)
                     return json_ret
             else:
                 return JSONObject(json_ret)
         except ValueError as e:
-            log.critical(f"Error parsing {json_ret}")
+            self.log.critical(f"Error parsing {json_ret}")
             log.exception(e)
             return json_ret
 
@@ -171,6 +171,11 @@ class RemoteJSONConnection(BaseConnection):
 
         json_ret = json.loads(r.content)
         json_obj_ret = None
+
+        if json_ret == 'OK':
+            self.log.info('done (%s)'%(time.time() -start_time))
+            return {'status': 'OK'}
+
         #Return value is a generator so we need to convert it to a list and return
         #the first element
         try:
