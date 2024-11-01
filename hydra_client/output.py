@@ -15,65 +15,15 @@
 #
 # -*- coding: utf-8 -*-
 
-__all__ = ['create_xml_response', 'write_progress', 'write_output',
-           'validate_plugin_xml']
+__all__ = ['write_progress', 'write_output']
 
 import os
 import logging
 log = logging.getLogger(__name__)
 
-from lxml import etree
-from lxml.etree import XMLSyntaxError, ParseError
-
 from hydra_base import config
-from hydra_base.exceptions import HydraPluginError
 
 import sys
-
-def create_xml_response(plugin_name, network_id, scenario_ids,
-                        errors=[], warnings=[], message=None, files=[]):
-    """
-        Build the XML string required at the end of each plugin, describing
-        the errors, warnings, messages and outputed files, if any of these
-        are relevant.
-    """
-
-    xml_string = """<plugin_result>
-    <message>%(message)s</message>
-    <plugin_name>%(plugin_name)s</plugin_name>
-    <network_id>%(network_id)s</network_id>
-    %(scenario_list)s
-    <errors>
-        %(error_list)s
-    </errors>
-    <warnings>
-        %(warning_list)s
-    </warnings>
-    <files>
-        %(file_list)s
-    </files>
-</plugin_result>"""
-
-    scenario_string = "<scenario_id>%s</scenario_id>"
-    error_string = "<error>%s</error>"
-    warning_string = "<warning>%s</warning>"
-    file_string = "<file>%s</file>"
-
-    if scenario_ids is None:
-        scenario_ids = []
-
-    xml_string = xml_string % dict(
-        plugin_name = plugin_name,
-        network_id = network_id,
-        scenario_list = "\n".join([scenario_string % scen_id
-                                   for scen_id in scenario_ids]),
-        message = message if message is not None else "",
-        error_list = "\n".join([error_string%error for error in errors]),
-        warning_list = "\n".join([warning_string%warning for warning in warnings]),
-        file_list = "\n".join([file_string % f for f in files]),
-    )
-
-    return xml_string
 
 
 def write_progress(x, y):
@@ -94,35 +44,3 @@ def write_output(text):
     msg = "!!Output %s" % (text,)
     print(msg)
     sys.stdout.flush()
-
-
-def validate_plugin_xml(plugin_xml_file_path):
-    log.info('Validating plugin xml file (%s).' % plugin_xml_file_path)
-
-    try:
-        with open(plugin_xml_file_path) as f:
-            plugin_xml = f.read()
-    except:
-        raise HydraPluginError("Couldn't find plugin.xml.")
-
-    try:
-        plugin_xsd_path = os.path.expanduser(config.get('plugin',
-                                                        'plugin_xsd_path'))
-        log.info("Plugin Input xsd: %s", plugin_xsd_path)
-        xmlschema_doc = etree.parse(plugin_xsd_path)
-        xmlschema = etree.XMLSchema(xmlschema_doc)
-        xml_tree = etree.fromstring(plugin_xml)
-    except XMLSyntaxError as e:
-        raise HydraPluginError("There is an error in your XML syntax: %s" % e)
-    except ParseError as e:
-        raise HydraPluginError("There is an error in your XML: %s" % e)
-    except Exception as e:
-        log.exception(e)
-        raise HydraPluginError("An unknown error occurred with the plugin xsd: %s"%e.message)
-
-    try:
-        xmlschema.assertValid(xml_tree)
-    except etree.DocumentInvalid as e:
-        raise HydraPluginError('Plugin validation failed: ' + e.message)
-
-    log.info("Plugin XML OK")
