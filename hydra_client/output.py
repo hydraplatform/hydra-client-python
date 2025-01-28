@@ -106,8 +106,7 @@ def validate_plugin_xml(plugin_xml_file_path):
         raise HydraPluginError("Couldn't find plugin.xml.")
 
     try:
-        plugin_xsd_path = os.path.expanduser(config.get('plugin',
-                                                        'plugin_xsd_path'))
+        plugin_xsd_path = os.path.expanduser(config.get("plugin_xsd_path"))
         log.info("Plugin Input xsd: %s", plugin_xsd_path)
         xmlschema_doc = etree.parse(plugin_xsd_path)
         xmlschema = etree.XMLSchema(xmlschema_doc)
