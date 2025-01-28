@@ -21,7 +21,7 @@ class BaseConnection(object):
     def __init__(self, *args, **kwargs):
         super(BaseConnection, self).__init__()
         self.app_name = kwargs.get('app_name', None)
-        self.dateformat = hydra_base.config.get('DEFAULT', 'datetime_format', DEFAULT_DATETIME_FORMAT)
+        self.dateformat = hydra_base.config.get("datetime_format", DEFAULT_DATETIME_FORMAT)
 
     def call(self, func_name, *args, **kwargs):
         """ Call a hydra-base function by name. """

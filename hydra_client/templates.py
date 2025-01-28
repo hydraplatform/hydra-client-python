@@ -117,8 +117,7 @@ def xsd_validate(template_file):
     with open(template_file) as f:
         xml_template = f.read()
 
-    template_xsd_path = os.path.expanduser(config.get('templates',
-                                                      'template_xsd_path'))
+    template_xsd_path = os.path.expanduser(config.get("template_xsd_path"))
     log.info("Template xsd: %s", template_xsd_path)
     xmlschema_doc = etree.parse(template_xsd_path)
     xmlschema = etree.XMLSchema(xmlschema_doc)

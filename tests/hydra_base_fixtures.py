@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 import datetime
 
 global user_id
-user_id = config.get('DEFAULT', 'root_user_id', 1)
+user_id = config.get("root_user_id", 1)
 
 
 @pytest.fixture
