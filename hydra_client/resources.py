@@ -102,14 +102,13 @@ class HydraNetwork(HydraResource):
     def load(self, json_net, json_attrs):
 
         # load network
-        resource_scenarios = dict()
-        for res_scen in \
-                json_net.scenarios[0].resourcescenarios:
-            resource_scenarios.update({res_scen.resource_attr_id: res_scen})
-        attributes = dict()
-        for attr in json_attrs:
-            attributes.update({attr.id: attr})
+        #build dictionary of resource scenarios:
+        resource_scenarios = {
+            res_scen.resource_attr_id: res_scen
+            for res_scen in json_net.scenarios[0].resourcescenarios
+        }
 
+        attributes = {attr.id: attr for attr in json_attrs}
         self.name = json_net.name
         self.ID = json_net.id
         self.description = json_net.description
@@ -118,6 +117,10 @@ class HydraNetwork(HydraResource):
 
         if json_net.attributes is not None:
             for res_attr in json_net.attributes:
+                if res_attr.attr_id not in attributes:
+                    log.warning("Attribute %s not found in attributes",
+                                res_attr)
+                    continue
                 self.add_attribute(attributes[res_attr.attr_id],
                                    res_attr,
                                    resource_scenarios.get(res_attr.id))
@@ -136,12 +139,12 @@ class HydraNetwork(HydraResource):
         for groupitem in groupitems:
             if groupitem.ref_key == 'NODE':
                 if groupitem.node_id not in nodegroups:
-                    nodegroups.update({groupitem.node_id: [groupitem.group_id]})
+                    nodegroups[groupitem.node_id] = [groupitem.group_id]
                 else:
                     nodegroups[groupitem.node_id].append(groupitem.group_id)
             elif groupitem.ref_key == 'LINK':
                 if groupitem.link_id not in linkgroups:
-                    linkgroups.update({groupitem.link_id: [groupitem.group_id]})
+                    linkgroups[groupitem.link_id] = [groupitem.group_id]
                 else:
                     linkgroups[groupitem.link_id].append(groupitem.group_id)
             elif groupitem.ref_key == 'GROUP':
