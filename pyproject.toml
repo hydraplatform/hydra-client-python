@@ -1,0 +1,34 @@
+[project]
+name = "hydra-client-python"
+description = "Client library to communicate with hydra platform"
+readme = "README.md"
+authors = [
+  {name = "Stephen Knox", email = "knoxsp@gmail.com"},
+]
+requires-python = ">=3.10"
+dynamic = ["version"]
+
+dependencies = [
+  "hydra-base",
+  "lxml",
+  "requests",
+  "cryptography"
+]
+
+[project.scripts]
+hydra-cli = "hydra_client.cli:start_cli"
+
+[project.urls]
+Documentation = "https://hydraplatform.org"
+Repository = "https://github.com/hydraplatform/hydra-client-python"
+
+[tool.setuptools.packages.find]
+include = ["hydra_client*"]
+
+[build-system]
+requires = ["setuptools>=61.0", "setuptools-scm>=6.2", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+version_scheme = "post-release"
+local_scheme = "no-local-version"

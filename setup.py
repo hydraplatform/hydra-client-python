@@ -9,9 +9,10 @@ setup(
     url='https://github.com/hydraplatform/hydra-client-python',
     packages=find_packages(),
     install_requires=['lxml', 'requests', 'cryptography'],
-    entry_points='''
-        [console_scripts]
-        hydra-cli=hydra_client.cli:start_cli
-        ''',
+    entry_points={
+        'console_scripts': [
+            'hydra-cli=hydra_client.cli:start_cli',
+        ],
+    },
 
 )
