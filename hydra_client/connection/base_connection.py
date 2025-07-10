@@ -7,8 +7,6 @@ import getpass
 import random
 from cryptography.fernet import Fernet
 
-import hydra_base
-
 from .. import config
 
 log = logging.getLogger(__name__)
@@ -21,7 +19,7 @@ class BaseConnection(object):
     def __init__(self, *args, **kwargs):
         super(BaseConnection, self).__init__()
         self.app_name = kwargs.get('app_name', None)
-        self.dateformat = hydra_base.config.get('DEFAULT', 'datetime_format', DEFAULT_DATETIME_FORMAT)
+        self.dateformat = os.getenv('HYDRA_DATETIME_FORMAT', DEFAULT_DATETIME_FORMAT)
 
     def call(self, func_name, *args, **kwargs):
         """ Call a hydra-base function by name. """

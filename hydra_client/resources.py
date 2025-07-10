@@ -381,8 +381,6 @@ def temp_ids(n=-1):
     that need them. You need to initialise the temporary id first and call the
     next element using the ``.next()`` function::
 
-        temp_node_id = PluginLib.temp_ids()
-
         # Create a node
         # ...
 

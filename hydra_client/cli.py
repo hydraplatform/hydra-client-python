@@ -2,17 +2,16 @@
 import click
 import json
 import os
-import hydra_base as hb
-from hydra_client.connection import JSONConnection
-from hydra_client.click import hydra_app, make_plugins, write_plugins
+from hydra_client.connection import RemoteJSONConnection
+from hydra_client.click import hydra_app
 import getpass
 import difflib
 from collections import defaultdict
 import logging
 LOG = logging.getLogger('hydra_utilities')
 
-def get_client(hostname, **kwargs):
-    return JSONConnection(app_name='Hydra Base Utilities', db_url=hostname, **kwargs)
+def get_client(url, **kwargs):
+    return RemoteJSONConnection(app_name='Remote Hydra Application', url=url, **kwargs)
 
 
 def get_logged_in_client(context, user_id=None):
@@ -66,38 +65,6 @@ def delete_duplicate_resource_attributes(obj):
 
     LOG.info("Duplicate resource attributes deleted.")
 
-@hydra_app(category='admin', name='Set roles and permissions')
-@cli.command(name='set-roles-and-permissions',
-    context_settings=dict(ignore_unknown_options=True, allow_extra_args=True))
-@click.pass_obj
-def set_roles_and_permissions(obj):
-    """ Set roles and permissions, as defined in the hydra base permissions file"""
-    hb.db.connect()
-
-    hb.util.hdb.create_default_users_and_perms()
-
-    hb.db.commit_transaction()
-
-    LOG.info("Roles and permissions set")
-
-@hydra_app(category='admin', name='Initialise the database with all the required default data')
-@cli.command(name='initialise-db',
-    context_settings=dict(ignore_unknown_options=True, allow_extra_args=True))
-@click.pass_obj
-def initialise_db(obj):
-    """ Set roles and permissions, as defined in the hydra base permissions file"""
-    hb.db.connect()
-
-    hb.util.hdb.create_default_users_and_perms()
-    hb.util.hdb.create_default_units_and_dimensions()
-    hb.util.hdb.make_root_user()
-    hb.util.hdb.create_default_net()
-
-    hb.db.commit_transaction()
-
-    LOG.info("Roles and permissions set")
-
-
 @hydra_app(category='admin', name='Change Password')
 @cli.command(name='update-user-password')
 @click.pass_obj
@@ -105,8 +72,6 @@ def update_user_password(obj):
     """ Set roles and permissions, as defined in the hydra base permissions file"""
 
     client = get_logged_in_client(obj)
-
-    hb.db.connect()
 
     username = input('Username to Change: ')
 

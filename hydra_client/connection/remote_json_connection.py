@@ -1,4 +1,4 @@
-# (c) Copyright 2013, 2014, University of Manchester
+# (c) Copyright 2013, 2014, University otf Manchester
 #
 # HydraLib is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -23,10 +23,8 @@ import warnings
 import logging
 import requests
 
-from hydra_base.lib.objects import JSONObject
-
 from hydra_client.exception import RequestError
-
+from hydra_client.objects import ExtendedDict
 from .base_connection import BaseConnection
 
 
@@ -89,16 +87,16 @@ class RemoteJSONConnection(BaseConnection):
         try:
             if isinstance(json_ret, list):
                 try:
-                    return [JSONObject(r) for r in json_ret]
+                    return [ExtendedDict(r) for r in json_ret]
                 except Exception as e:
                     self.log.critical(f"Error parsing {json_ret}")
-                    log.exception(e)
+                    self.log.exception(e)
                     return json_ret
             else:
-                return JSONObject(json_ret)
+                return ExtendedDict(json_ret)
         except ValueError as e:
             self.log.critical(f"Error parsing {json_ret}")
-            log.exception(e)
+            self.log.exception(e)
             return json_ret
 
     def call(self, func, *args, **kwargs):
@@ -181,11 +179,11 @@ class RemoteJSONConnection(BaseConnection):
         try:
             if isinstance(json_ret, list):
                 try:
-                    json_obj_ret = [JSONObject(r) for r in json_ret]
+                    json_obj_ret = [ExtendedDict(r) for r in json_ret]
                 except:
                     json_obj_ret = json_ret
             else:
-                json_obj_ret = JSONObject(json_ret)
+                json_obj_ret = ExtendedDict(json_ret)
         except ValueError:
             json_obj_ret = json_ret
 
@@ -229,4 +227,4 @@ class JsonConnection(RemoteJSONConnection):
         )
 
 def object_hook(x):
-    return JSONObject(x)
+    return ExtendedDict(x)

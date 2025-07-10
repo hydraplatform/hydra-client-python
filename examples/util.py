@@ -1,17 +1,17 @@
-from hydra_base import JSONObject, Dataset
+from hydra_client.objects import ExtendedDict
 import json
 import datetime
 import logging
 log = logging.getLogger(__name__)
 
 def build_network(conn, name=None, project_id=None, num_nodes=10):
-    
+
     """
-        Create a network with the correct 
+        Create a network with the correct
     """
 
     #Does nothing if project id is None, just returns the project id, otherwise
-    #finds or creates the project 
+    #finds or creates the project
 
     project_id = get_project(conn, project_id)
 
@@ -21,9 +21,9 @@ def build_network(conn, name=None, project_id=None, num_nodes=10):
     node_type     = template.templatetypes[1] #For the purposes of this example, there is only 1 type of node. The 'default node'
     link_type     = template.templatetypes[2] #For the purposes of this example, there is only 1 type of link. The 'default link'
     group_type    = template.templatetypes[3]
-     
+
     nodes, links = create_nodes_and_links(node_type, link_type, num_nodes=num_nodes)
-    
+
     groups, group_items = create_groups(nodes, links, group_type)
 
     #way so I can check the value is correct after the network is created.
@@ -35,17 +35,17 @@ def build_network(conn, name=None, project_id=None, num_nodes=10):
     network_attributes = create_network_attributes(conn, network_type)
 
     net_type= []
-    net_type = JSONObject(dict(
+    net_type = ExtendedDict(dict(
         template_id = template.id,
         template_name = template.name,
         id = network_type.id,
         name = network_type.name,
     ))
-    
+
     #The the contents of a group are scenario-dependent
     scenario = create_scenario(nodes, links, groups, group_items, node_type, link_type)
 
-    network = JSONObject(dict(
+    network = ExtendedDict(dict(
         name        = 'Network @ %s'%datetime.datetime.now(),
         description = 'An example network',
         project_id  = project_id,
@@ -62,17 +62,17 @@ def build_network(conn, name=None, project_id=None, num_nodes=10):
     return network
 
 def create_scenario(nodes, links, groups, resourcegroupitems, node_type, link_type):
-    
+
     log.info('Creating Scenario')
 
     #Create the scenario
-    scenario = JSONObject()
+    scenario = ExtendedDict()
     scenario.id = -1
     scenario.name        = 'Scenario 1'
     scenario.description = 'Scenario Description'
     scenario.layout      = json.dumps({'app': ["Unit Test1", "Unit Test2"]})
 
-    scenario.resourcegroupitems = resourcegroupitems 
+    scenario.resourcegroupitems = resourcegroupitems
 
     node_data, link_data, group_data = populate_network_with_data(nodes, links, groups, node_type, link_type)
 
@@ -84,16 +84,16 @@ def create_scenario(nodes, links, groups, resourcegroupitems, node_type, link_ty
 def create_attr(conn, name="Test attribute", dimension="dimensionless"):
     attr_i = conn.get_attribute({'name':name, 'dimension':dimension})
     if attr_i is None or len(attr_i) == 0:
-        attr = JSONObject({'name'  : name,
+        attr = ExtendedDict({'name'  : name,
                 'dimension' : dimension
                })
-        attr = JSONObject(conn.add_attribute({'attr':attr}))
+        attr = ExtendedDict(conn.add_attribute({'attr':attr}))
     else:
-        attr = JSONObject(attr_i)
+        attr = ExtendedDict(attr_i)
     return attr
 
 def create_template(conn, name="Example Template"):
-    
+
     log.info('Creating Template')
 
 
@@ -101,7 +101,7 @@ def create_template(conn, name="Example Template"):
 
     if len(existing_template) > 0:
         log.info("Existing template found. Continuing")
-        return JSONObject(existing_template)
+        return ExtendedDict(existing_template)
     else:
         log.info("No existing template found. Making new one.")
 
@@ -118,7 +118,7 @@ def create_template(conn, name="Example Template"):
     group_attr_1 = create_attr(conn, "grp_attr_1", dimension='Monetary Value')
     group_attr_2 = create_attr(conn, "grp_attr_2", dimension='Displacement')
 
-    template = JSONObject()
+    template = ExtendedDict()
     template['name'] = name
 
 
@@ -126,20 +126,20 @@ def create_template(conn, name="Example Template"):
     #**********************
     #network type         #
     #**********************
-    net_type = JSONObject()
+    net_type = ExtendedDict()
     net_type.name = "Default Network"
     net_type.alias = "Test type alias"
     net_type.resource_type='NETWORK'
 
     typeattrs = []
 
-    typeattr_1 = JSONObject()
+    typeattr_1 = ExtendedDict()
     typeattr_1.attr_id = net_attr1.id
     typeattr_1.data_restriction = {'LESSTHAN': 10, 'NUMPLACES': 1}
     typeattr_1.unit = 'm^3'
     typeattrs.append(typeattr_1)
 
-    typeattr_2 = JSONObject()
+    typeattr_2 = ExtendedDict()
     typeattr_2.attr_id = net_attr2.id
     typeattrs.append(typeattr_2)
 
@@ -149,29 +149,29 @@ def create_template(conn, name="Example Template"):
     #**********************
     # node type           #
     #**********************
-    node_type = JSONObject()
+    node_type = ExtendedDict()
     node_type.name = "Default Node"
     node_type.alias = "Test type alias"
     node_type.resource_type='NODE'
 
     typeattrs = []
 
-    typeattr_1 = JSONObject()
+    typeattr_1 = ExtendedDict()
     typeattr_1.attr_id = node_attr_1.id
     typeattr_1.data_restriction = {'LESSTHAN': 10, 'NUMPLACES': 1}
     typeattr_1.unit = 'm^3'
     typeattrs.append(typeattr_1)
 
-    typeattr_2 = JSONObject()
+    typeattr_2 = ExtendedDict()
     typeattr_2.attr_id = node_attr_2.id
     typeattr_2.data_restriction = {'INCREASING': None}
     typeattrs.append(typeattr_2)
 
-    typeattr_3 = JSONObject()
+    typeattr_3 = ExtendedDict()
     typeattr_3.attr_id = node_attr_3.id
     typeattrs.append(typeattr_3)
 
-    typeattr_4 = JSONObject()
+    typeattr_4 = ExtendedDict()
     typeattr_4.attr_id = node_attr_4.id
     typeattr_4.unit = "m^3 s^-1"
     typeattrs.append(typeattr_4)
@@ -182,21 +182,21 @@ def create_template(conn, name="Example Template"):
     #**********************
     #link type            #
     #**********************
-    link_type = JSONObject()
+    link_type = ExtendedDict()
     link_type.name = "Default Link"
     link_type.resource_type='LINK'
 
     typeattrs = []
 
-    typeattr_1 = JSONObject()
+    typeattr_1 = ExtendedDict()
     typeattr_1.attr_id = link_attr_1.id
     typeattrs.append(typeattr_1)
 
-    typeattr_2 = JSONObject()
+    typeattr_2 = ExtendedDict()
     typeattr_2.attr_id = link_attr_2.id
     typeattrs.append(typeattr_2)
 
-    typeattr_3 = JSONObject()
+    typeattr_3 = ExtendedDict()
     typeattr_3.attr_id = link_attr_3.id
     typeattrs.append(typeattr_3)
 
@@ -207,17 +207,17 @@ def create_template(conn, name="Example Template"):
     #**********************
     #group type           #
     #**********************
-    group_type = JSONObject()
+    group_type = ExtendedDict()
     group_type.name = "Default Group"
     group_type.resource_type='GROUP'
 
     typeattrs = []
 
-    typeattr_1 = JSONObject()
+    typeattr_1 = ExtendedDict()
     typeattr_1.attr_id = group_attr_1.id
     typeattrs.append(typeattr_1)
 
-    typeattr_2 = JSONObject()
+    typeattr_2 = ExtendedDict()
     typeattr_2.attr_id = group_attr_2.id
     typeattrs.append(typeattr_2)
 
@@ -228,7 +228,7 @@ def create_template(conn, name="Example Template"):
     template.templatetypes = types
 
     new_template_i = conn.add_template({'tmpl':template})
-    new_template   = JSONObject(new_template_i)
+    new_template   = ExtendedDict(new_template_i)
 
     assert new_template.name == template.name, "Names are not the same!"
     assert new_template.id is not None, "New Template has no ID!"
@@ -251,7 +251,7 @@ def create_node(node_id, attributes=None, node_name="test node name"):
         attributes = []
     #turn 0 into 1, -1 into 2, -2 into 3 etc..
     coord = (node_id * -1) + 1
-    node = JSONObject({
+    node = ExtendedDict({
         'id' : node_id,
         'name' : node_name,
         'description' : "a node representing a water resource",
@@ -268,7 +268,7 @@ def create_link(link_id, node_1_name, node_2_name, node_1_id, node_2_id):
 
     ra_array = []
 
-    link = JSONObject({
+    link = ExtendedDict({
         'id'          : link_id,
         'name'        : "%s_to_%s"%(node_1_name, node_2_name),
         'description' : 'A test link between two nodes.',
@@ -294,7 +294,7 @@ def create_nodes_and_links(node_type, link_type, num_nodes=10):
 
     nodes = []
     links = []
-    
+
     for n in range(num_nodes):
         node = create_node(n*-1, node_name="Node %s"%(n))
 
@@ -302,7 +302,7 @@ def create_nodes_and_links(node_type, link_type, num_nodes=10):
         #We don't assign data directly to these resource attributes. This
         #is done when creating the scenario -- a scenario is just a set of
         #data for a given list of resource attributes.
-        node_ra1         = JSONObject(dict(
+        node_ra1         = ExtendedDict(dict(
             ref_key = 'NODE',
             ref_id  = None,
             attr_id = node_type.typeattrs[0].attr_id,
@@ -310,15 +310,15 @@ def create_nodes_and_links(node_type, link_type, num_nodes=10):
             attr_is_var = 'N',
         ))
         ra_index = ra_index + 1
-        node_ra2         = JSONObject(dict(
+        node_ra2         = ExtendedDict(dict(
             ref_key = 'NODE',
             ref_id  = None,
             attr_id = node_type.typeattrs[1].attr_id,
             id      = ra_index * -1,
             attr_is_var = 'Y', #Note that this is a 'var' meanint it's an OUTPUT, so is not assigned a value here
-        )) 
+        ))
         ra_index = ra_index + 1
-        node_ra3         = JSONObject(dict(
+        node_ra3         = ExtendedDict(dict(
             ref_key = 'NODE',
             ref_id  = None,
             attr_id = node_type.typeattrs[2].attr_id,
@@ -326,7 +326,7 @@ def create_nodes_and_links(node_type, link_type, num_nodes=10):
             attr_is_var = 'N',
         ))
         ra_index = ra_index + 1
-        node_ra4         = JSONObject(dict(
+        node_ra4         = ExtendedDict(dict(
             ref_key = 'NODE',
             ref_id  = None,
             attr_id = node_type.typeattrs[3].attr_id,
@@ -337,7 +337,7 @@ def create_nodes_and_links(node_type, link_type, num_nodes=10):
 
         node.attributes = [node_ra1, node_ra2, node_ra3, node_ra4]
 
-        type_summary = JSONObject(dict(
+        type_summary = ExtendedDict(dict(
             id = node_type.id,
             name = node_type.name
         ))
@@ -357,7 +357,7 @@ def create_nodes_and_links(node_type, link_type, num_nodes=10):
                 node['id'],
                 prev_node['id'])
 
-            link_ra1         = JSONObject(dict(
+            link_ra1         = ExtendedDict(dict(
                 ref_id  = None,
                 ref_key = 'LINK',
                 id     = ra_index * -1,
@@ -365,7 +365,7 @@ def create_nodes_and_links(node_type, link_type, num_nodes=10):
                 attr_is_var = 'N',
             ))
             ra_index = ra_index + 1
-            link_ra2         = JSONObject(dict(
+            link_ra2         = ExtendedDict(dict(
                 ref_id  = None,
                 ref_key = 'LINK',
                 attr_id = link_type.typeattrs[1].attr_id,
@@ -373,7 +373,7 @@ def create_nodes_and_links(node_type, link_type, num_nodes=10):
                 attr_is_var = 'N',
             ))
             ra_index = ra_index + 1
-            link_ra3         = JSONObject(dict(
+            link_ra3         = ExtendedDict(dict(
                 ref_id  = None,
                 ref_key = 'LINK',
                 attr_id = link_type.typeattrs[2].attr_id,
@@ -385,7 +385,7 @@ def create_nodes_and_links(node_type, link_type, num_nodes=10):
             link.attributes = [link_ra1, link_ra2, link_ra3]
             if link['id'] % 2 == 0:
                 type_summary_arr = []
-                type_summary = JSONObject(
+                type_summary = ExtendedDict(
                     {'id': link_type.id,
                      'name':link_type.name
                     }
@@ -406,14 +406,14 @@ def create_groups(nodes, links, group_type):
         A resource group is a container for nodes and links, used to represent
         political or social hierarchies, or logical groupings of nodes where a
         rule must be applied to them
-        
+
         The contents of a group are scenario dependent, so the group configuration
         can be changed within a network.
     """
     log.info('Creating Groups')
 
     # Put an attribute on a group
-    group_ra = JSONObject(dict(
+    group_ra = ExtendedDict(dict(
         ref_id  = None,
         ref_key = 'GROUP',
         attr_is_var = 'N',
@@ -423,7 +423,7 @@ def create_groups(nodes, links, group_type):
     group_attrs = [group_ra]
 
     groups       = []
-    group             = JSONObject(dict(
+    group             = ExtendedDict(dict(
         id          = -1,
         name        = "Test Group",
         description = "Test group description"
@@ -431,7 +431,7 @@ def create_groups(nodes, links, group_type):
 
     group.attributes = group_attrs
 
-    type_summary = JSONObject(dict(
+    type_summary = ExtendedDict(dict(
         id = group_type.id,
         name = group_type.name
     ))
@@ -439,16 +439,16 @@ def create_groups(nodes, links, group_type):
     type_summary_arr = [type_summary]
 
     group.types = type_summary_arr
-    
+
     groups.append(group)
 
     group_items      = []
-    group_item_1 = JSONObject(dict(
+    group_item_1 = ExtendedDict(dict(
         ref_key  = 'NODE',
         ref_id   = nodes[0]['id'],
         group_id = group['id'],
     ))
-    group_item_2  = JSONObject(dict(
+    group_item_2  = ExtendedDict(dict(
         ref_key  = 'NODE',
         ref_id   = nodes[1]['id'],
         group_id = group['id'],
@@ -459,7 +459,7 @@ def create_groups(nodes, links, group_type):
     return groups, group_items
 
 def populate_network_with_data(nodes, links, groups, node_type, link_type):
-    
+
     """
         Crate datasets and associate them with the nodes, links and groups in the network.
         The datasets created are scalars, timeseries and dataframes.
@@ -503,10 +503,10 @@ def create_project(conn, name):
 
     if len(user_projects) == 0:
         log.info('Project "%s" not found, creating a new one', name)
-        project = JSONObject()
+        project = ExtendedDict()
         project.name = name
         project.description = "Project which contains all example networks"
-        project = JSONObject(conn.add_project({'project':project}))
+        project = ExtendedDict(conn.add_project({'project':project}))
 
         return project
     else:
@@ -533,19 +533,19 @@ def create_network_attributes(conn, network_type):
 
     net_attr = create_attr(conn, "net_attr_b", dimension='Pressure')
 
-    net_ra_notmpl = JSONObject(dict(
+    net_ra_notmpl = ExtendedDict(dict(
         ref_id  = None,
         ref_key = 'NETWORK',
         attr_is_var = 'N',
         attr_id = net_attr.id,
     ))
-    net_ra_tmpl = JSONObject(dict(
+    net_ra_tmpl = ExtendedDict(dict(
         ref_id  = None,
         ref_key = 'NETWORK',
         attr_is_var = 'N',
         attr_id = network_type.typeattrs[0].attr_id,
     ))
-    
+
     return [net_ra_notmpl, net_ra_tmpl]
 
 def create_scalar(resource_attr, val=1.234):
@@ -560,7 +560,7 @@ def create_scalar(resource_attr, val=1.234):
         value = val,
     )
 
-    scenario_attr = JSONObject(dict(
+    scenario_attr = ExtendedDict(dict(
         attr_id = resource_attr.attr_id,
         resource_attr_id = resource_attr.id,
         dataset = dataset,
@@ -581,7 +581,7 @@ def create_descriptor(resource_attr, val="test"):
         value = val,
     )
 
-    scenario_attr = JSONObject(dict(
+    scenario_attr = ExtendedDict(dict(
         attr_id = resource_attr.attr_id,
         resource_attr_id = resource_attr.id,
         dataset = dataset,
@@ -622,7 +622,7 @@ def create_timeseries(resource_attr):
         metadata = metadata
     )
 
-    scenario_attr = JSONObject(dict(
+    scenario_attr = ExtendedDict(dict(
         attr_id = resource_attr.attr_id,
         resource_attr_id = resource_attr.id,
         dataset = dataset,
@@ -657,7 +657,7 @@ def create_dataframe(resource_attr):
         value = json.dumps(ts_val),
     )
 
-    scenario_attr = JSONObject(dict(
+    scenario_attr = ExtendedDict(dict(
         attr_id = resource_attr.attr_id,
         resource_attr_id = resource_attr.id,
         dataset = dataset,
@@ -684,7 +684,7 @@ def create_array(resource_attr):
         metadata = metadata_array,
     )
 
-    scenario_attr = JSONObject(dict(
+    scenario_attr = ExtendedDict(dict(
         attr_id = resource_attr.attr_id,
         resource_attr_id = resource_attr.id,
         dataset = dataset,
