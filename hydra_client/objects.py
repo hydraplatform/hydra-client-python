@@ -62,6 +62,7 @@ def get_json_as_dict(json_string_or_dict):
         except:
             return json_string_or_dict
         
+VALID_JSON_FIRST_CHARS = ['{', '[']
 class ExtendedDict(dict):
     """
         A dictionary object whose attributes can be accesed via a '.'.
@@ -86,11 +87,8 @@ class ExtendedDict(dict):
                 dict_layout = get_json_as_dict(v)
                 self[k] = dict_layout
             elif isinstance(v, dict):
-                #TODO what is a better way to identify a dataset?
-                if 'unit_id' in v or 'unit' in v or 'metadata' in v or 'type' in v:
-                    self[k] = Dataset(v, obj_dict)
-                #The value on a dataset should remain untouched
-                elif k == 'value':
+                #the value key is a special case, as it is the value of a dataset
+                if k == 'value':
                     self[k] = v
                 else:
                     self[k] = ExtendedDict(v, obj_dict, normalize=normalize)
