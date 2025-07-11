@@ -19,3 +19,14 @@ __all__ = ['RequestError']
 
 class RequestError(Exception):
     pass
+
+class HydraClientError(Exception):
+    """
+    Base class for all Hydra errors.
+    """
+    def __init__(self, message=None, *args, **kwargs):
+        super(HydraClientError, self).__init__(message, *args, **kwargs)
+        self.message = message
+
+    def __str__(self):
+        return self.message if self.message else "An error occurred in Hydra."
