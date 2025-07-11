@@ -15,7 +15,7 @@
 #
 # -*- coding: utf-8 -*-
 
-__all__ = ['RequestError']
+__all__ = ['RequestError', 'HydraClientError']
 
 class RequestError(Exception):
     pass
