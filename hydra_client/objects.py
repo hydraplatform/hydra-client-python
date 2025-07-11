@@ -23,6 +23,7 @@ import logging
 log = logging.getLogger(__name__)
 
 import six
+import enum
 
 from datetime import datetime
 
