@@ -26,6 +26,41 @@ import six
 
 from datetime import datetime
 
+def get_json_as_string(json_string_or_dict):
+    """
+        Take a dict or string and return a string.
+        The dict will be json dumped.
+        The string will json parsed to check for json validity. In order to deal
+        with strings which have been json encoded multiple times, keep json decoding
+        until a dict is retrieved or until a non-json structure is identified.
+    """
+
+    if isinstance(json_string_or_dict, dict):
+        return json.dumps(json_string_or_dict)
+
+    if(isinstance(json_string_or_dict, six.string_types)):
+        try:
+            return get_json_as_string(json.loads(json_string_or_dict))
+        except:
+            return json_string_or_dict
+
+def get_json_as_dict(json_string_or_dict):
+    """
+        Take a dict or string and return a dict if the data is json-encoded.
+        The string will json parsed to check for json validity. In order to deal
+        with strings which have been json encoded multiple times, keep json decoding
+        until a dict is retrieved or until a non-json structure is identified.
+    """
+
+    if isinstance(json_string_or_dict, dict):
+        return json_string_or_dict
+
+    if(isinstance(json_string_or_dict, six.string_types)):
+        try:
+            return get_json_as_dict(json.loads(json_string_or_dict))
+        except:
+            return json_string_or_dict
+        
 class ExtendedDict(dict):
     """
         A dictionary object whose attributes can be accesed via a '.'.
