@@ -127,10 +127,8 @@ class ExtendedDict(dict):
                     and hasattr(obj_dict, '_parents')\
                     and obj_dict._parents is not None\
                     and v.__tablename__ not in obj_dict._parents:
-                if v.__tablename__.lower() == 'tdataset':
-                    l = Dataset(v, obj_dict)
-                else:
-                    l = ExtendedDict(v, obj_dict)
+
+                l = ExtendedDict(v, obj_dict)
                 self[k] = l
             #Special case for SQLAlchemy objects, to stop them recursing up and down
             elif hasattr(v, '_sa_instance_state')\
@@ -183,7 +181,6 @@ class ExtendedDict(dict):
                 assert isinstance(obj, dict), "JSON string does not evaluate to a dict"
             except (AssertionError, json.decoder.JSONDecodeError) as e:
                 log.critical("Error with value: %s" , obj_dict)
-                log.critical(parent)
                 raise ValueError("Unable to read string value. Make sure it's JSON serialisable") from e
         elif hasattr(obj_dict, '_asdict') and obj_dict._asdict is not None:
             """
@@ -193,19 +190,6 @@ class ExtendedDict(dict):
             performed here.
             """
             obj = obj_dict._asdict()
-            if obj.get("value") is not None:
-                try:
-                    """
-                    ref_key may be not None but also not a valid oid string, so
-                    must handle InvalidId from ObjectId and possible TypeError
-                    if oid inst is created but then matches no document.
-                    """
-                    oid = ObjectId(obj["value"])
-                    doc = mongo.get_document_by_oid_inst(oid)
-                    obj["value"] = doc["value"]
-                except (TypeError, InvalidId):
-                    """ The value wasn't an valid ObjectID, keep the current value """
-                    pass
         elif hasattr(obj_dict, '__dict__') and len(obj_dict.__dict__) > 0:
             obj = obj_dict.__dict__
             """
@@ -226,15 +210,6 @@ class ExtendedDict(dict):
             handled similarly.
             """
             obj = obj_dict
-            ref_key = obj.get("value")
-            if ref_key:
-                try:
-                    oid = ObjectId(ref_key)
-                    doc = mongo.get_document_by_oid_inst(oid)
-                    obj["value"] = doc["value"]
-                except (TypeError, InvalidId):
-                    """ The value wasn't an valid ObjectID, keep the current value """
-                    pass
         else:
             #last chance...try to cast it as a dict. Do this for sqlalchemy result proxies.
             try:
