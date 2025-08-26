@@ -138,7 +138,7 @@ def plugin_to_xml(data):
 
 def write_plugins(plugins, app_name):
     """ Write the generated plugins to XML files. """
-    base_plugin_dir = Path(hydra_base.config.get('plugin', 'default_directory'))
+    base_plugin_dir = Path(hydra_base.config.get("plugin_default_directory"))
     base_plugin_dir = base_plugin_dir.joinpath(app_name)
 
     if not base_plugin_dir.exists():
