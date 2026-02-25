@@ -19,6 +19,7 @@
 __all__ = ['RemoteJSONConnection', 'JsonConnection']
 import json
 import time
+import os
 import warnings
 import logging
 import requests
@@ -47,6 +48,14 @@ class RemoteJSONConnection(BaseConnection):
         self.app_name = app_name if app_name else ''
         self.session_id = session_id
         self.test_server = None
+        timeout_from_env = os.getenv('HYDRA_CLIENT_TIMEOUT_SECONDS', '60')
+        try:
+            self.request_timeout = float(timeout_from_env)
+            if self.request_timeout <= 0:
+                raise ValueError()
+        except ValueError:
+            self.log.warning("Invalid HYDRA_CLIENT_TIMEOUT_SECONDS value '%s'. Defaulting to 60 seconds.", timeout_from_env)
+            self.request_timeout = 60.0
 
         if test_server is not None:
             self.test_server = test_server
@@ -140,7 +149,13 @@ class RemoteJSONConnection(BaseConnection):
                   'appname': self.app_name.replace(' ', '_')#for some reason, beaker fails when the appname cookie has a space in it
                  }
 
-        r = requests.post(self.url, data=json.dumps(call), headers=headers, cookies=cookie)
+        r = requests.post(
+            self.url,
+            data=json.dumps(call),
+            headers=headers,
+            cookies=cookie,
+            timeout=self.request_timeout,
+        )
 
         if not r.ok:
             try:
