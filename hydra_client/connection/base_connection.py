@@ -47,10 +47,12 @@ class BaseConnection(object):
 
         """
         #try to get the URL from the environment
-        if url is None:
+        #(use truthiness, not "is None": an --env var passed through as an empty
+        #string by the job-runner must fall back to the default too)
+        if not url:
             url = os.getenv('HYDRA_SERVER_URL')
 
-        if url is None:
+        if not url:
 
             port = config.port
             domain = config.domain

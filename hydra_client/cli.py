@@ -15,7 +15,7 @@ def get_client(url, **kwargs):
 
 
 def get_logged_in_client(context, user_id=None):
-    session = context['session']
+    session = context['session'] or os.environ.get('HYDRA_SESSION_ID')
     client = get_client(context['hostname'], session_id=session, user_id=user_id)
     if client.user_id is None:
         client.login(username=context['username'], password=context['password'])
