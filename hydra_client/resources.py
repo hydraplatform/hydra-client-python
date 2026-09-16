@@ -93,11 +93,19 @@ class HydraNetwork(HydraResource):
 
     description = None
     scenario_id = None
-    nodes = []
-    links = []
-    groups = []
-    node_groups = []
-    link_groups = []
+
+    def __init__(self):
+        # These must be per-instance: as bare class attributes the lists were
+        # shared by every HydraNetwork ever built in the process, so a second
+        # network loaded into the same process (e.g. two exports in one run)
+        # accumulated the first one's nodes and links on top of its own --
+        # producing duplicate set members in the exported model, and
+        # resource_attr_ids belonging to the wrong network.
+        super(HydraNetwork, self).__init__()
+        self.nodes = []
+        self.links = []
+        self.node_groups = []
+        self.link_groups = []
 
     def load(self, json_net, json_attrs):
 
