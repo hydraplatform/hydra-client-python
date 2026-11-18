@@ -31,7 +31,7 @@ from .base_connection import BaseConnection
 
 class RemoteJSONConnection(BaseConnection):
     """ Remote connection to a Hydra server. """
-    def __init__(self, url=None, session_id=None, app_name=None, test_server=None, **kwargs):
+    def __init__(self, url=None, session_id=None, app_name=None, test_server=None, bearer_token=None, **kwargs):
         """
             args:
                 url: The url of the hydra platform server
@@ -39,6 +39,9 @@ class RemoteJSONConnection(BaseConnection):
                 app_name: The name of the app making the requests
                 test_server: A Spyne NullServer object, which if not null is used
                               for testing purposes
+                bearer_token: An OAuth access token. If given, requests are authenticated with it
+                              (Authorization: Bearer) and no login is needed. Users who have
+                              two-factor authentication must connect this way.
 
         """
         super(RemoteJSONConnection, self).__init__(app_name=app_name)
@@ -47,6 +50,7 @@ class RemoteJSONConnection(BaseConnection):
         self.url = self.get_url(url, 'json')
         self.app_name = app_name if app_name else ''
         self.session_id = session_id
+        self.bearer_token = bearer_token
         self.test_server = None
         timeout_from_env = os.getenv('HYDRA_CLIENT_TIMEOUT_SECONDS', '60')
         try:
@@ -141,13 +145,18 @@ class RemoteJSONConnection(BaseConnection):
             'Content-Type': 'application/json',
             'appname': self.app_name,
         }
+        if self.bearer_token:
+            headers['Authorization'] = 'Bearer %s' % self.bearer_token
         if func != 'login':
             self.log.info("Args %s", str(call)[0:200])
 
-        cookie = {'beaker.session.id':self.session_id,
-                  'user_id': str(self.user_id),
-                  'appname': self.app_name.replace(' ', '_')#for some reason, beaker fails when the appname cookie has a space in it
-                 }
+        if self.bearer_token:
+            cookie = {}   # the token is the credential; a stale session must not be sent beside it
+        else:
+            cookie = {'beaker.session.id':self.session_id,
+                      'user_id': str(self.user_id),
+                      'appname': self.app_name.replace(' ', '_')#for some reason, beaker fails when the appname cookie has a space in it
+                     }
 
         r = requests.post(
             self.url,
@@ -177,7 +186,7 @@ class RemoteJSONConnection(BaseConnection):
 
             raise RequestError(err)
 
-        if self.session_id is None:
+        if self.session_id is None and not self.bearer_token:
 
             self.session_id = r.cookies.get('beaker.session.id')
             self.log.info(self.session_id)
